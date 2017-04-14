@@ -18,3 +18,4 @@ default2: foobar
 	-o build/foo \
 	-jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js
 	mv *.cmis.js ./build/
+	cp * ./build/* ./docs

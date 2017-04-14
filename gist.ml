@@ -1,7 +1,5 @@
 open Types
 
-let a = false
-
 let info s = (
   Firebug.console##info (Js.string s)
 )
@@ -9,12 +7,10 @@ let info s = (
 let log ~s = (
   Firebug.console##log (Js.string s)
 )
-print_string "foo"
+
 let highlight_location loc = (
   (*log "highlight it"*)
 )
-
-module x = struct
 
 let executeCode code = (
   JsooTop.initialize ();
@@ -43,15 +39,27 @@ let to_code_mirror (textarea:Dom_html.textAreaElement Js.t) = (
       ("matchBrackets", Js.Unsafe.js_expr "true");
     |])
   |] in
+  let doc = Dom_html.document in
+  let consoleTextArea = Dom_html.createTextarea doc in
+  let ta = editor##getTextArea () in
+  let nextPart = ta##nextElementSibling##nextElementSibling in
+  ta##parentNode##insertBefore(consoleTextArea, nextPart);
+  let console = Js.Unsafe.meth_call code_mirror "fromTextArea" [|
+    (Js.Unsafe.inject consoleTextArea);
+    (Js.Unsafe.obj [|
+      ("mode", Js.Unsafe.js_expr "'ocaml'");
+      ("readOnly", Js.Unsafe.js_expr "true")
+    |])
+    |]
+  in
+  console##getTextArea()##nextElementSibling##classList##add (Js.string "console");
   editor##on (Js.string "change", (Js.Unsafe.inject (Js.Unsafe.callback
       (debounce (fun _ -> (
         (* TODO: run compilation in a webworker for better user experience *)
           let executedCode = executeCode (Js.to_string editor##getValue()) in
-          info executedCode
-        *)
+          console##setValue (Js.string (String.trim executedCode))
       )) 500.)
-  )));
-  (* "the console output part" *)
+  )))
 )
 
 let initialize () = (

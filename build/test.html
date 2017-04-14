@@ -1,14 +1,16 @@
 <html>
   <head>
     <style>
-      .console {
+      .CodeMirror.console {
         background-color: #21252b;
-        color: #abb2bf;
-        margin: 0 10px 10px 10px;
-        border-top: solid 1px black;
+        border-top: solid 10px black;
+        border-radius: 0;
         border-bottom-left-radius: 4px;
         border-bottom-right-radius: 4px;
+        margin: 0 10px 10px 10px;
+        padding: 0 40px;
       }
+
       .console pre {
         margin: 0;
       }
@@ -16,20 +18,20 @@
     <link href="codemirror.css" rel="stylesheet" />
   </head>
   <body>
-    <textarea data-ocaml id="code">
+    <textarea data-ocaml>
 [@@@part "1"];;
 type shape = < area : float >;;
 
 type square = < area : float; width : int >;;
     </textarea>
-<div class="console">
+<!-- <div class="console">
   <pre>
   val numeric_deriv :
     delta:float ->
     x:float -> y:float -> f:(x:float -> y:float -> float) -> float * float =
     &lt;fun&gt;
   </pre>
-</div>
+</div> -->
     <textarea data-ocaml>
 let numeric_deriv ~delta ~x ~y ~(f: x:float -> y:float -> float) =
   let x' = x +. delta in

@@ -1,0 +1,175 @@
+<html>
+  <head>
+    <style>
+      .CodeMirror.console {
+        background-color: #21252b;
+        border-top: solid 10px black;
+        border-radius: 0;
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+        margin: 0 10px 10px 10px;
+        padding: 0 40px;
+      }
+
+      .console pre {
+        margin: 0;
+      }
+    </style>
+    <link href="codemirror.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea data-ocaml>
+[@@@part "1"];;
+type shape = < area : float >;;
+
+type square = < area : float; width : int >;;
+    </textarea>
+<!-- <div class="console">
+  <pre>
+  val numeric_deriv :
+    delta:float ->
+    x:float -> y:float -> f:(x:float -> y:float -> float) -> float * float =
+    &lt;fun&gt;
+  </pre>
+</div> -->
+    <textarea data-ocaml>
+let numeric_deriv ~delta ~x ~y ~(f: x:float -> y:float -> float) =
+  let x' = x +. delta in
+  let y' = y +. delta in
+  let base = f ~x ~y in
+  let dx = (f ~y ~x:x' -. base) /. delta in
+  let dy = (f ~x ~y:y' -. base) /. delta in
+  (dx,dy)
+;;
+    </textarea>
+    <textarea data-ocaml>
+type element = Empty | X (* ensure we do not miss cases in patterns *)
+
+(* Whether [row.(c)] for [col0 ≤ c < col1] are all set to [X]. *)
+let rec is_set_range row col0 col1 =
+col0 >= col1 || (row.(col0) = X && is_set_range row (col0 + 1) col1)
+
+(* Whether all [row.(ncol)] .. [row.(ncol + width - 1)] equal [X]. *)
+let is_set_sub row col0 width =
+col0 + width <= Array.length row
+&& is_set_range row col0 (col0 + width)
+
+(* Check that [row.(col0 ..)] conforms the pattern [patt_row]. *)
+let rec check_row row col0 patt_row =
+if col0 >= Array.length row then
+  patt_row = [] (* row exhausted, no pattern must remain *)
+else
+  match row.(col0) with
+  | Empty -> check_row row (col0 + 1) patt_row
+  | X ->
+     match patt_row with
+     | [] -> false
+     | nX :: tl ->
+        if is_set_sub row col0 nX then
+          let col0 = col0 + nX in
+          (col0 >= Array.length row || row.(col0) = Empty)
+          && check_row row (col0 + 1) tl
+        else false
+
+(* Check that each row of the table conforms [patts_row].  It is
+ assumed that the length of [patts_row] is equal to the number of
+ lines of [table]. *)
+let rec check_rows table row0 patts_row =
+row0 >= Array.length table
+|| (match patts_row with
+   | patt_row :: tl -> check_row table.(row0) 0 patt_row
+                      && check_rows table (row0 + 1) tl
+   | [] -> assert false)
+
+let char_of_element = function
+| Empty -> '_'
+| X -> 'X'
+
+let print_tbl table =
+let print_row r =
+  Array.iter (fun e -> print_char '|';
+                     print_char(char_of_element e)) r;
+  print_string "|\n" in
+Array.iter print_row table
+
+let solve patts_row patts_col =
+let height = List.length patts_row
+and width = List.length patts_col in
+let table = Array.make_matrix height width Empty in
+(* Generate all possibilities for columns and filter according
+   to row patterns.  [patts_col] are the patterns left for the
+   current column. *)
+let rec gen col row patts_col =
+  if col >= width then (
+    if check_rows table 0 patts_row then
+      print_tbl table
+  )
+  else
+    match patts_col with
+    | [] :: rest_patt ->
+       (* No pattern left for this column, go to the next one. *)
+       gen (col + 1) 0 rest_patt
+    | (nX :: tl) :: rest_patt ->
+       assert(nX > 0);
+       if row + nX <= height then (
+         for r = row to row + nX - 1 do
+           table.(r).(col) <- X
+         done;
+         gen col (row + nX + 1) (tl :: rest_patt);
+         for r = row to row + nX - 1 do
+           table.(r).(col) <- Empty
+         done;
+         (* Try the same pattern from next row: *)
+         gen col (row + 1) patts_col;
+       )
+    | [] -> assert false
+in gen 0 0 patts_col;;
+    </textarea>
+    <textarea data-ocaml>
+let possible row col used_rows usedD1 usedD2 =
+  not (List.mem row used_rows
+   || List.mem (row + col) usedD1
+   || List.mem (row - col) usedD2)
+
+let queens_positions n =
+  let rec aux row col used_rows usedD1 usedD2 =
+    if col > n then [List.rev used_rows]
+    else
+      (if row < n then aux (row + 1) col used_rows usedD1 usedD2
+       else [])
+      @ (if possible row col used_rows usedD1 usedD2 then
+           aux 1 (col + 1) (row :: used_rows) (row + col :: usedD1)
+               (row - col :: usedD2)
+         else [])
+  in aux 1 1 [] [] [];;
+    </textarea>
+    <textarea data-ocaml>
+
+    </textarea>
+    <textarea data-ocaml>
+module Interval = struct
+  type t = | Interval of int * int
+           | Empty
+
+  let create low high =
+    if high < low then Empty else Interval (low,high)
+end;;
+module Extended_interval = struct
+  include Interval
+
+  let contains t x =
+    match t with
+    | Empty -> false
+    | Interval (low,high) -> x >= low && x <= high
+end;;
+Extended_interval.contains (Extended_interval.create 3 10) 4;;
+
+    </textarea>
+    <textarea data-ocaml>let a = 2;;</textarea>
+  </body>
+  <script src="codemirror.js"></script>
+  <script src="ocaml.js"></script>
+  <script src="stdlib.cmis.js"></script>
+  <script src="caml2html.cmis.js"></script>
+  <script src="foo.js"></script>
+</html>

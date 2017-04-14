@@ -1,0 +1,14 @@
+opam-version: "0.1"
+maintainer: "sandermail@gmail.com"
+homepage: "https://github.com/sanderspies/ocaml-gist"
+build: [
+  [ make "clean" "min" ]
+  [ make "clean" "full" ]
+]
+depends: [
+  "ocamlfind"
+  "optcomp"
+  "lwt" {>= "2.7"}
+  "js_of_ocaml" {>= "2.8.3"}
+]
+ocaml-version: [ >= "4.03.0" ]

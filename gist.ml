@@ -4,19 +4,38 @@ let info s = (
   Firebug.console##info (Js.string s)
 )
 
-let log ~s = (
+let err s = (
+  Firebug.console##error (Js.string s)
+)
+
+let log s = (
   Firebug.console##log (Js.string s)
 )
 
-let highlight_location loc = (
-  (*log "highlight it"*)
+let highlight_location editor loc = (
+
+  (* TODO:  editor##doc##markText *)
+
+  log "highlight the error location please..."
 )
 
-let executeCode code = (
+let executeCode editor code = (
+  let stdout_buffer = Buffer.create 100 in
+  let stderr_buffer = Buffer.create 100 in
+  Sys_js.set_channel_flusher stdout (Buffer.add_string stdout_buffer);
+  Sys_js.set_channel_flusher stderr (Buffer.add_string stderr_buffer);
   JsooTop.initialize ();
-  let buffer = Buffer.create 100 in
-  JsooTop.execute true (*~pp_code:Format.std_formatter*) ~highlight_location (Format.formatter_of_buffer buffer)  (code ^ ";;");
-  Buffer.to_bytes buffer
+  let answer_buffer = Buffer.create 100 in
+  JsooTop.execute true ~highlight_location:(highlight_location editor) (Format.formatter_of_buffer answer_buffer)  (code ^ ";;");
+  let error = Buffer.to_bytes stderr_buffer in
+  let output = Buffer.to_bytes stdout_buffer in
+  let answer = Buffer.to_bytes answer_buffer in
+  if String.length error > 0 then
+    error
+  else if String.length output > 0 then
+    output ^ "\n\n" ^ answer
+  else
+    answer
 )
 
 let debounce func timeout_ms = (
@@ -56,8 +75,8 @@ let to_code_mirror (textarea:Dom_html.textAreaElement Js.t) = (
   editor##on (Js.string "change", (Js.Unsafe.inject (Js.Unsafe.callback
       (debounce (fun _ -> (
         (* TODO: run compilation in a webworker for better user experience *)
-          let executedCode = executeCode (Js.to_string editor##getValue()) in
-          console##setValue (Js.string (String.trim executedCode))
+          let result = executeCode editor (Js.to_string editor##getValue()) in
+          console##setValue (Js.string (String.trim result))
       )) 500.)
   )))
 )

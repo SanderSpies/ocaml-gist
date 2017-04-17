@@ -10,12 +10,11 @@ foobar:
 		gist.ml
 
 #  -jsopt "--pretty"
+# -jsopt "--disable shortvar"
+# -verbose
 default2: foobar
 	jsoo_mktop \
-	-verbose \
 	./gist.cma \
-	-jsopt "--disable shortvar" \
 	-o build/foo \
 	-jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js
 	mv *.cmis.js ./build/
-	cp * ./build/* ./docs

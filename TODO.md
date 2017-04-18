@@ -2,10 +2,8 @@ TODO
 ===
 - week 4:
   - execute code in webworker for better user experience
-  - show error at correct location
 
-- show output of executed code (both types and console)
-- show error at correct position
+
 - make it look even prettier??
   - Add console token or something to the bottom part?
   -

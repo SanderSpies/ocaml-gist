@@ -13,13 +13,25 @@ let log s = (
 )
 
 let highlight_location editor loc = (
+  let _file1,line1,col1 = Location.get_pos_info (loc.Location.loc_start) in
+  let _file2,line2,col2 = Location.get_pos_info (loc.Location.loc_end) in
+  let from = Js.Unsafe.(obj
+    [|"line", Js.Unsafe.inject (line1 - 1);
+      "ch", Js.Unsafe.inject col1 |]) in
+  let to_ = Js.Unsafe.(obj
+    [|"line", Js.Unsafe.inject (line2 - 1);
+      "ch", Js.Unsafe.inject col2 |]) in
+  let options = Js.Unsafe.(obj
+    [|"className", Js.Unsafe.inject "ocaml-gist-highlight"|]) in
+  editor##doc##markText(from, to_, options);
+)
 
-  (* TODO:  editor##doc##markText *)
-
-  log "highlight the error location please..."
+let remove_marks editor = (
+  editor##doc##getAllMarks()##forEach(fun mark -> mark##clear())
 )
 
 let executeCode editor code = (
+  remove_marks editor;
   let stdout_buffer = Buffer.create 100 in
   let stderr_buffer = Buffer.create 100 in
   Sys_js.set_channel_flusher stdout (Buffer.add_string stdout_buffer);
@@ -62,7 +74,7 @@ let to_code_mirror (textarea:Dom_html.textAreaElement Js.t) = (
   let consoleTextArea = Dom_html.createTextarea doc in
   let ta = editor##getTextArea () in
   let nextPart = ta##nextElementSibling##nextElementSibling in
-  ta##parentNode##insertBefore(consoleTextArea, nextPart);
+  ignore(ta##parentNode##insertBefore(consoleTextArea, nextPart));
   let console = Js.Unsafe.meth_call code_mirror "fromTextArea" [|
     (Js.Unsafe.inject consoleTextArea);
     (Js.Unsafe.obj [|
@@ -71,7 +83,7 @@ let to_code_mirror (textarea:Dom_html.textAreaElement Js.t) = (
     |])
     |]
   in
-  console##getTextArea()##nextElementSibling##classList##add (Js.string "console");
+  ignore(console##getTextArea()##nextElementSibling##classList##add (Js.string "console"));
   editor##on (Js.string "change", (Js.Unsafe.inject (Js.Unsafe.callback
       (debounce (fun _ -> (
         (* TODO: run compilation in a webworker for better user experience *)

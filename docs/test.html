@@ -1,7 +1,5 @@
 <html>
   <head>
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <style>
       .CodeMirror.console {
         background-color: #21252b;
@@ -15,6 +13,11 @@
 
       .console pre {
         margin: 0;
+      }
+
+      .ocaml-gist-highlight {
+        color: orangered !important;
+        text-decoration: underline;
       }
     </style>
     <link href="codemirror.css" rel="stylesheet" />
@@ -171,8 +174,5 @@ Extended_interval.contains (Extended_interval.create 3 10) 4;;
   </body>
   <script src="codemirror.js"></script>
   <script src="ocaml.js"></script>
-  <script src="stdlib.cmis.js"></script>
-  <script src="caml2html.cmis.js"></script>
-  <script src="foo.js"></script>
+  <script src="gist_tool.js"></script>
 </html>
-      

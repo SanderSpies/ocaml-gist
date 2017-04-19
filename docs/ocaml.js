@@ -40,6 +40,7 @@ CodeMirror.defineMode('ocaml', function(config) {
   };
 
   function tokenBase(stream, state) {
+
     var sol = stream.sol();
     var ch = stream.next();
 
@@ -74,7 +75,8 @@ CodeMirror.defineMode('ocaml', function(config) {
     }
     stream.eatWhile(/\w/);
     var cur = stream.current();
-    return words[cur] || 'variable';
+    var word = words[cur];
+    return typeof word === 'string' ? word : 'variable';
   }
 
   function tokenString(stream, state) {

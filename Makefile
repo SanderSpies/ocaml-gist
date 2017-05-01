@@ -13,6 +13,7 @@ merlin_lite: clean
 	-package unix \
 	-package yojson \
 	-package findlib \
+	-package js_of_ocaml \
 	-I $(MERLIN)sturgeon_null \
 	-I $(MERLIN)utils \
 	-I $(MERLIN)ocaml/typer_$(OCAML_VERSION) \
@@ -22,6 +23,7 @@ merlin_lite: clean
 	-I $(MERLIN)kernel \
 	-I $(MERLIN)frontend \
 	-I $(MERLIN)analysis \
+	-I $(MERLIN)frontend/new \
 	-I +compiler-libs \
 	$(MERLIN)utils/std.ml \
 	$(MERLIN)extend/extend_protocol.ml \
@@ -44,7 +46,7 @@ merlin_lite: clean
 	$(MERLIN)analysis/browse_misc.ml \
 	$(MERLIN)analysis/type_utils.ml \
 	$(MERLIN)analysis/expansion.ml \
-	$(MERLIN)analysis/completion.ml
+	$(MERLIN)analysis/completion.ml \
 
 code_execution_webworker.cma: merlin_lite
 	ocamlfind ocamlc  -a -o ./build/code_execution_webworker.cma \
@@ -54,6 +56,7 @@ code_execution_webworker.cma: merlin_lite
 	-package str \
 	-package unix \
 	-I $(MERLIN)analysis \
+	-I $(MERLIN)ocaml/typer_$(OCAML_VERSION) \
 	-I +compiler-libs \
 		./build/merlin_lite.cma \
 		./src/ml/code_execution_webworker.ml
@@ -84,6 +87,5 @@ gist_tool: gist_tool.byte gist_tool_js code_execution_webworker
 	./build/gist_tool.byte \
 	--opt 3 \
 	-o build/gist_tool.js
-	rm src/ml/gist_tool.c*
 
 output: gist_tool

@@ -1,10 +1,8 @@
 Worker.import_scripts ["stdlib.cmis.js"];;
 
-open Completion
+(*
 
-let node_complete = Completion.node_complete;;
-
-print_endline "YES THIS WORKED";;
+*)
 
 let execute_code code = (
   let lexbuf = Lexing.from_string code in
@@ -16,6 +14,9 @@ let execute_code code = (
     (* Compmisc.init_path false; *)
     let env1 = !Toploop.toplevel_env in
     let (typed_structure, _, env) = Typemod.type_structure env1 structure Location.none in
+    let entries = Completion.node_complete env Browse_raw.(Structure typed_structure) "List.f" in
+    print_string "no of entries:";
+    print_int (List.length entries);
     Printtyped.implementation f typed_structure;
     let result = Buffer.to_bytes buff in
     Firebug.console##log (Js.string result);

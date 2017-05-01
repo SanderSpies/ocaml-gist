@@ -448,7 +448,7 @@ let complete_methods ~env ~prefix obj =
     { name; kind = `MethodCall; desc = `Type_scheme ty; info }
   )
 
-let complete_prefix ?get_doc ?target_type ~env ~prefix ~is_label config node =
+let complete_prefix ?get_doc ?target_type ~env ~prefix ~is_label node =
   let seen = Hashtbl.create 7 in
   let uniq n = if Hashtbl.mem seen n
     then false
@@ -538,17 +538,17 @@ let keep_suffix = Longident.(
   | otherwise -> otherwise, false)
 
 (* Propose completion from a particular node *)
-let node_complete buffer ?get_doc ?target_type env node prefix =
+let node_complete ?get_doc ?target_type env node prefix =
   Printtyp.wrap_printing_env env @@ fun () ->
   match node with
   | Method_call (obj,_,_) -> complete_methods ~env ~prefix obj
   | Pattern    { Typedtree.pat_desc = Typedtree.Tpat_record (_, _) ; _ }
   | Expression { Typedtree.exp_desc = Typedtree.Texp_record _ ; _ } ->
     let prefix, _is_label = Longident.(keep_suffix @@ parse prefix) in
-    complete_prefix ?get_doc ?target_type ~env ~prefix ~is_label:true buffer node
+    complete_prefix ?get_doc ?target_type ~env ~prefix ~is_label:true node
   | x ->
     let prefix, is_label = Longident.(keep_suffix @@ parse prefix) in
-    complete_prefix ?get_doc ?target_type ~env ~prefix ~is_label buffer node
+    complete_prefix ?get_doc ?target_type ~env ~prefix ~is_label node
 
 let expand_prefix ~global_modules env prefix =
   let lidents, last =

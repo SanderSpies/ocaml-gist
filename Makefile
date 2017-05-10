@@ -46,7 +46,7 @@ merlin_lite: clean
 	$(MERLIN)analysis/browse_misc.ml \
 	$(MERLIN)analysis/type_utils.ml \
 	$(MERLIN)analysis/expansion.ml \
-	$(MERLIN)analysis/completion.ml \
+	$(MERLIN)analysis/completion.ml
 
 code_execution_webworker.cma: merlin_lite
 	ocamlfind ocamlc  -a -o ./build/code_execution_webworker.cma \
@@ -57,6 +57,9 @@ code_execution_webworker.cma: merlin_lite
 	-package unix \
 	-I $(MERLIN)analysis \
 	-I $(MERLIN)ocaml/typer_$(OCAML_VERSION) \
+	-I $(MERLIN)kernel \
+	-I $(MERLIN)frontend \
+	-I $(MERLIN)utils \
 	-I +compiler-libs \
 		./build/merlin_lite.cma \
 		./src/ml/code_execution_webworker.ml

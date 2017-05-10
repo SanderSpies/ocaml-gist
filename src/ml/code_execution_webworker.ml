@@ -1,8 +1,11 @@
 Worker.import_scripts ["stdlib.cmis.js"];;
 
-(*
+type phase =
+  | Autocomplete
+  | Typing
+  | Compilation
 
-*)
+
 
 let execute_code code = (
   let lexbuf = Lexing.from_string code in
@@ -14,9 +17,14 @@ let execute_code code = (
     (* Compmisc.init_path false; *)
     let env1 = !Toploop.toplevel_env in
     let (typed_structure, _, env) = Typemod.type_structure env1 structure Location.none in
-    let entries = Completion.node_complete env Browse_raw.(Structure typed_structure) "List.f" in
-    print_string "no of entries:";
-    print_int (List.length entries);
+    let pos = Lexing.{pos_fname = ""; pos_lnum = 3; pos_bol = 0; pos_cnum = 5} in
+    let (foo:Mbrowse.t list) = [[(env, Structure typed_structure)]] in
+    let (env, node) = List.hd (List.hd foo) in
+    let x = Mbrowse.deepest_before pos foo in
+    let entries = Completion.node_complete env node "bar" in
+    print_string "entries:";
+    List.iter (fun ({Query_protocol.Compl.name; _}) ->
+      print_string name) entries;
     Printtyped.implementation f typed_structure;
     let result = Buffer.to_bytes buff in
     Firebug.console##log (Js.string result);

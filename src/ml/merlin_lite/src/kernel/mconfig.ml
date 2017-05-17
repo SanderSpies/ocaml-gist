@@ -122,7 +122,7 @@ type merlin = {
   packages_loaded  : string list;
 
   packages_path : string list;
-  packages_ppx  : Ppxsetup.t;
+  (* packages_ppx  : Ppxsetup.t; *)
 
   failures    : string list;
 
@@ -530,7 +530,7 @@ let initial = {
     packages_loaded   = [];
 
     packages_path = [];
-    packages_ppx  = Ppxsetup.empty;
+    (* packages_ppx  = Ppxsetup.empty; *)
 
     failures = [];
   };
@@ -561,9 +561,7 @@ let stdlib =
     | Some stdlib -> stdlib
     | None -> match env with
       | Some stdlib -> stdlib
-      | None ->
-        Mconfig_dot.standard_library
-          ?conf:config.findlib.conf ~path:config.findlib.path ()
+      | None -> failwith "not supported"
 
 let arguments_table =
   let table = Hashtbl.create 67 in
@@ -709,7 +707,7 @@ let cmt_path config = (
     | filename -> List.remove (Misc.unitname filename) modules
 ) *)
 
-let normalize_step _trace t =
+(* let normalize_step _trace t =
   let merlin = t.merlin and findlib = t.findlib in
   let open Mconfig_dot in
   if merlin.dotmerlin_to_load <> [] then
@@ -750,7 +748,7 @@ let normalize_step _trace t =
                  packages_to_load = [];
                  packages_loaded = merlin.packages_to_load @ merlin.packages_loaded;
                  packages_path = path @ merlin.packages_path;
-                 packages_ppx  = Ppxsetup.union ppx merlin.packages_ppx;
+                 (* packages_ppx  = Ppxsetup.union ppx merlin.packages_ppx; *)
                  failures = failures @ merlin.failures
                }
     }
@@ -770,7 +768,7 @@ let normalize_step _trace t =
     in
     {t with merlin = {t.merlin with failures = !failures @ t.merlin.failures}}
   else
-    t
+    t *)
 
 let is_normalized t =
   let merlin = t.merlin in
@@ -778,7 +776,7 @@ let is_normalized t =
   merlin.dotmerlin_to_load = [] &&
   merlin.packages_to_load = []
 
-let rec normalize trace t =
+(* let rec normalize trace t =
   if is_normalized t then
     (Logger.logj "Mconfig" "normalize" (fun () -> dump t); t)
-  else normalize trace (normalize_step trace t)
+  else normalize trace (normalize_step trace t) *)

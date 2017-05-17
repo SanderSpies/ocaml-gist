@@ -29,7 +29,7 @@
 
 open Std
 
-(* open Browse_tree *)
+open Browse_tree
 open Browse_raw
 
 open Extend_protocol.Reader

@@ -28,7 +28,7 @@
 
 open Std
 open Option.Infix
-(* open Browse_tree *)
+open Browse_tree
 
 let print_constructor c =
   let open Types in
@@ -96,7 +96,7 @@ let signature_of_env ?(ignore_extensions=true) env =
   let open Types in
   let sg = ref [] in
   let append item = sg := item :: !sg in
-  let rec aux = function    
+  let rec aux = function
     | summary ->
       let open Raw_compat in
       Option.iter ~f:append (signature_of_summary summary);

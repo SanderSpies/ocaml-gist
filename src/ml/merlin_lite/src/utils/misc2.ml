@@ -15,7 +15,7 @@
 
 open Std
 
-let () = Findlib.init ()
+(* let () = Findlib.init () *)
 
 (* Errors *)
 
@@ -84,7 +84,7 @@ let rec split_path path acc =
 
 (* Deal with case insensitive FS *)
 
-external fs_exact_case : string -> string = "ml_merlin_fs_exact_case"
+let fs_exact_case a = a
 
 (* A replacement for sys_file_exists that makes use of stat_cache *)
 module File_exists = File_cache.Make(struct

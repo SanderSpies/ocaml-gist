@@ -12,12 +12,17 @@ let type_code code = (
     let f = Format.formatter_of_buffer buff
     in
     let env1 = !Toploop.toplevel_env in
+
+    print_endline "Checking...";
     let (typed_structure, typed_signature, env) = Typemod.type_structure env1 structure Location.none in
+    print_endline "Checking...2";
+    let _ = Env.lookup_module ~load:true (Lident "List") in
+    print_endline "SUCCESS!!!!";
     latest_typed_structure := Some typed_structure;
     latest_typed_signature := Some typed_signature;
     latest_env := Some env
   with
-    | _ -> ());
+    | _ -> print_endline "something went wrong here...");
 )
 
 let autocomplete (pos:Lexing.position) = (
@@ -26,10 +31,10 @@ let autocomplete (pos:Lexing.position) = (
     let (foo:Mbrowse.t list) = [[(latest_env, Structure latest_typed_structure)]] in
     let (env, node) = List.hd (List.hd foo) in
     let x = Mbrowse.deepest_before pos foo in
-    let entries = Completion.node_complete env node "bar" in
-    print_string "entries:";
+    let entries = Completion.node_complete env node "List." in
+    print_endline "autocomplete entries:";
     let _ = List.iter (fun ({Query_protocol.Compl.name; _}) ->
-      print_string name) entries in
+      print_endline ("- " ^ name)) entries in
     ()
   )
   | _ ->
@@ -63,6 +68,29 @@ let execute_code code = (
 )
 ;;
 
+let load_resource_aux url =
+  try
+    let xml = XmlHttpRequest.create () in
+    xml##_open(Js.string "GET", url, Js._false);
+    xml##send(Js.null);
+    if xml##status = 200 then Some (xml##responseText) else None
+  with _ -> None
+;;
+
+(* Sys_js.register_autoload' "/" (fun (_,s) -> load_resource_aux ((Js.string "filesys/")##concat(s))) *)
+
+
+let old_loader = !Env.Persistent_signature.load;;
+Env.Persistent_signature.load := (fun ~unit_name ->
+  ( let cmi_infos = Cmi_format.read_cmi ("/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
+    print_endline ("CMI:" ^ cmi_infos.cmi_name);
+    Some {
+      Env.Persistent_signature.filename = unit_name;
+      cmi = cmi_infos
+    })
+);;
+
+
 Worker.set_onmessage (fun code ->
   let target = "foo" in
   let x = Destruct.node in
@@ -70,7 +98,11 @@ Worker.set_onmessage (fun code ->
   let x = Track_definition.get_doc in
   let x = Browse_tree.all_constructor_occurrences in
   let x = Outline.get in
-  match target with
+  let _ = type_code (Js.to_string code##code) in
+  let _ = autocomplete Lexing.{pos_fname = ""; pos_lnum = 3; pos_bol = 0; pos_cnum = 5} in
+  ()
+  (*  *)
+  (* match target with
   | "type" -> (type_code (Js.to_string code##code); ())
   | "autocomplete" -> () (* implemented, but not connected here yet *)
   | "compile" -> () (* implemented, but not connected here yet *)
@@ -78,12 +110,11 @@ Worker.set_onmessage (fun code ->
   | "occurences" -> failwith "not implemented yet" (* get all locations where the variable occurs *)
   | "outline" -> failwith "not implemented yet" (* get outline o*)
 
-
   | "locate" -> failwith "not implemented yet" (* jump to location *)
   | "document" -> failwith "not implemented yet" (* get ocaml doc for location *)
 
   | _ -> ()
-;
+; *)
   (* let (result, markLocations) = execute_code (Js.to_string code##code) in
   Worker.post_message (Js.Unsafe.obj [|
     ("id", code##id);

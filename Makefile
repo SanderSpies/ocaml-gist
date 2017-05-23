@@ -7,6 +7,10 @@ default: gist_tool
 clean:
 	find . -name '*.cm*' -delete
 
+stdlib: clean
+	ocamlfind ocamlc -package findlib findlib.cma ./src/ml/build/stdlib_builder.ml -o stdlib_builder
+	./stdlib_builder
+
 merlin_lite: clean
 	ocamlfind ocamlc -a -o ./build/merlin_lite.cma \
 	-package str \
@@ -45,6 +49,7 @@ merlin_lite: clean
 	$(MERLIN)utils/marg.ml \
 	$(MERLIN)utils/ppxsetup.ml \
 	$(MERLIN)kernel/msource.ml \
+	$(MERLIN)kernel/mconfig.ml \
 	$(MERLIN)kernel/mreader.ml \
 	$(MERLIN)frontend/query_protocol.ml \
 	$(MERLIN)ocaml/typer_$(OCAML_VERSION)/tail_analysis.ml \
@@ -62,13 +67,13 @@ merlin_lite: clean
 	$(MERLIN)analysis/outline.ml \
 	$(MERLIN)ocaml/support/cmt_cache.ml \
 	$(MERLIN)analysis/typedtrie.ml \
-	$(MERLIN)kernel/mconfig.ml \
+	$(MERLIN)utils/local_store.ml \
 	$(MERLIN)utils/misc2.ml \
 	$(MERLIN)analysis/track_definition.ml
 
 
-code_execution_webworker.cma: merlin_lite
-	ocamlfind ocamlc  -a -o ./build/code_execution_webworker.cma \
+code_execution_webworker.cma: merlin_lite stdlib
+	ocamlfind ocamlc -a -o ./build/code_execution_webworker.cma \
 	-syntax camlp4o \
 	-linkpkg \
 	-package js_of_ocaml.syntax \

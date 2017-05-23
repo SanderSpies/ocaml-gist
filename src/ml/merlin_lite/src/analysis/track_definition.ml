@@ -86,7 +86,7 @@ module File = struct
 
   let ext = function
     | ML _  -> ".ml"  | MLI _  -> ".mli"
-    | CMT _ -> ".cmt" | CMTI _ -> ".cmti"
+    | CMT _ -> ".cmt" | CMTI _ -> ".cmti.js"
 
   exception Not_found of t
 
@@ -276,7 +276,7 @@ module Utils = struct
           match file with
           | File.ML f   -> Misc2.chop_extension_if_any f ^ ".mli"
           | File.MLI f  -> Misc2.chop_extension_if_any f ^ ".ml"
-          | File.CMT f  -> Misc2.chop_extension_if_any f ^ ".cmti"
+          | File.CMT f  -> Misc2.chop_extension_if_any f ^ ".cmti.js"
           | File.CMTI f -> Misc2.chop_extension_if_any f ^ ".cmt"
       in
       let rec attempt_search synonyms =
@@ -312,6 +312,7 @@ type context = Type | Expr | Patt of Types.type_expr | Unknown | Label
 exception Context_mismatch
 
 let rec locate ~config ?pos path trie =
+  print_endline "LOCATE FRO";
   match Typedtrie.find ?before:pos trie path with
   | Typedtrie.Found (loc, doc_opt) -> Some (loc, doc_opt)
   | Typedtrie.Resolves_to (new_path, fallback) ->
@@ -333,6 +334,7 @@ let rec locate ~config ?pos path trie =
     from_path ~config new_path
 
 and browse_cmts ~config ~root modules =
+  print_endline "BROWSE_CMTS";
   let open Cmt_format in
   let cached = Cmt_cache.read root in
   logf "browse_cmts" "inspecting %s" root ;
@@ -392,6 +394,7 @@ and browse_cmts ~config ~root modules =
       unit, and that's why we restore the initial loadpath. *)
 and from_path ~config path =
   log "from_path '%s'" (Typedtrie.path_to_string path) ;
+  print_endline "from_path";
   match path with
   | [ fname, `Mod ] ->
     let save_digest_and_return root =
@@ -402,6 +405,7 @@ and from_path ~config path =
         | None   -> fname
         | Some f -> f
       in
+      print_endline ("YO:" ^ fname);
       let pos = Lexing.make_pos ~pos_fname:fname (1, 0) in
       let loc = { Location. loc_start=pos ; loc_end=pos ; loc_ghost=true } in
       Some (loc, None)
@@ -420,6 +424,7 @@ and from_path ~config path =
              don't have that we can blindly look for the source file and hope
              there are no duplicates. *)
           logf "from_path" "failed to locate the cmt[i] of '%s'" fname;
+          print_endline ("YO:" ^ fname);
           let pos = Lexing.make_pos ~pos_fname:fname (1, 0) in
           let loc = { Location. loc_start=pos ; loc_end=pos ; loc_ghost=true } in
           File_switching.move_to loc.Location.loc_start.Lexing.pos_fname ;
@@ -428,7 +433,7 @@ and from_path ~config path =
     end
   | (fname, `Mod) :: modules ->
     begin try
-      let cmt_file = Utils.find_file ~config ~with_fallback:true (Preferences.cmt fname) in
+      let cmt_file = "/cmis/" ^  (String.lowercase fname) ^ ".cmi" in
       browse_cmts ~config ~root:cmt_file modules
     with File.Not_found (File.CMT fname | File.CMTI fname) as exn ->
       restore_loadpath (fun () ->
@@ -464,6 +469,7 @@ exception Multiple_matches of string list
 
 let find_source ~config loc =
   let fname = loc.Location.loc_start.Lexing.pos_fname in
+  print_endline ("YO:" ^ fname);
   let with_fallback = loc.Location.loc_ghost in
   let mod_name = Utils.file_path_to_mod_name fname in
   let file =
@@ -563,6 +569,7 @@ let find_source ~config loc =
   try find_source ~config loc
   with exn ->
     let fname = loc.Location.loc_start.Lexing.pos_fname in
+    print_endline ("YO:" ^ fname);
     try
       let i = String.first_double_underscore_end fname in
       let pos = i + 1 in
@@ -807,7 +814,7 @@ let get_doc ~config ~env ~local_defs ~comments ~pos =
   let_ref loadpath     cmt_path @@ fun () ->
   let_ref last_location Location.none @@ fun () ->
   match
-    match path with
+    (match path with
     | `Completion_entry entry -> from_completion_entry ~config ~pos ~lazy_trie entry
     | `User_input path ->
       let lid    = Longident.parse path in
@@ -817,7 +824,7 @@ let get_doc ~config ~env ~local_defs ~comments ~pos =
       | Some ctxt ->
         logf "get_doc" "looking for the doc of '%s'" path ;
         from_longident ~config ~pos ~env ~lazy_trie ctxt `MLI lid
-      end
+      end)
   with
   | `Found (loc, Some doc) ->
     `Found doc

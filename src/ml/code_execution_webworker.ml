@@ -1,4 +1,4 @@
-Worker.import_scripts ["stdlib.cmis.js"];;
+Worker.import_scripts ["stdlib2.cmis.js"];;
 
 let (latest_typed_structure:Typedtree.structure option ref) = ref None;;
 let (latest_typed_signature:Types.signature_item list option ref) = ref None;;
@@ -12,29 +12,32 @@ let type_code code = (
     let f = Format.formatter_of_buffer buff
     in
     let env1 = !Toploop.toplevel_env in
-
-    print_endline "Checking...";
+    Env.reset_cache ();
     let (typed_structure, typed_signature, env) = Typemod.type_structure env1 structure Location.none in
-    print_endline "Checking...2";
     let _ = Env.lookup_module ~load:true (Lident "List") in
-    print_endline "SUCCESS!!!!";
     latest_typed_structure := Some typed_structure;
     latest_typed_signature := Some typed_signature;
     latest_env := Some env
   with
     | _ -> print_endline "something went wrong here...");
 )
-
+;;
+let comments = [("This is an example...", Location.{loc_start = Lexing.{pos_fname = ""; pos_lnum = 2; pos_bol = 0; pos_cnum = 0}; loc_end = Lexing.{pos_fname = ""; pos_lnum = 4; pos_bol = 0; pos_cnum = 20}; loc_ghost = false})]
+;;
 let autocomplete (pos:Lexing.position) = (
   match !latest_env, !latest_typed_structure with
   | Some latest_env, Some latest_typed_structure -> (
     let (foo:Mbrowse.t list) = [[(latest_env, Structure latest_typed_structure)]] in
     let (env, node) = List.hd (List.hd foo) in
     let x = Mbrowse.deepest_before pos foo in
+    let foo = Track_definition.get_doc ~env ~local_defs:(`Implementation latest_typed_structure) ~pos ~comments ~config:Mconfig.initial (`User_input "List.iter") in
+    (match foo with
+    | `Found str -> print_endline ("RAP:" ^ str)
+    | _ -> print_endline "NO LOVE");
     let entries = Completion.node_complete env node "List." in
-    print_endline "autocomplete entries:";
+    (* print_endline "autocomplete entries:";
     let _ = List.iter (fun ({Query_protocol.Compl.name; _}) ->
-      print_endline ("- " ^ name)) entries in
+      print_endline ("- " ^ name)) entries in *)
     ()
   )
   | _ ->
@@ -77,29 +80,48 @@ let load_resource_aux url =
   with _ -> None
 ;;
 
-(* Sys_js.register_autoload' "/" (fun (_,s) -> load_resource_aux ((Js.string "filesys/")##concat(s))) *)
 
+Sys_js.register_autoload' "/" (fun (_,s) -> load_resource_aux ((Js.string "cmtis/")##concat(s)))
 
 let old_loader = !Env.Persistent_signature.load;;
 Env.Persistent_signature.load := (fun ~unit_name ->
-  ( let cmi_infos = Cmi_format.read_cmi ("/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
-    print_endline ("CMI:" ^ cmi_infos.cmi_name);
-    Some {
-      Env.Persistent_signature.filename = unit_name;
-      cmi = cmi_infos
-    })
+  (
+    let cmi_infos2 = Cmt_format.read ("/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
+    match cmi_infos2 with
+    | (Some cmi_infos, _) -> (
+      (* List.iter (fun (c, _) -> print_endline c) cmt_infos.cmt_comments; *)
+
+
+      Some {
+        Env.Persistent_signature.filename = unit_name;
+        cmi = cmi_infos
+      }
+
+      )
+    | _ -> None
+    )
 );;
+
 
 
 Worker.set_onmessage (fun code ->
   let target = "foo" in
+  let test_pos = Lexing.{pos_fname = ""; pos_lnum = 3; pos_bol = 0; pos_cnum = 5} in
   let x = Destruct.node in
   let x = Ocamldoc.associate_comment in
-  let x = Track_definition.get_doc in
   let x = Browse_tree.all_constructor_occurrences in
-  let x = Outline.get in
+  (* outline test *)
+  (match !latest_env, !latest_typed_structure with
+  | Some env, Some ts -> (
+    let (foo:Mbrowse.t list) = [[(env, Structure ts)]] in
+    let (env, node) = List.hd (List.hd foo) in
+    let x = Outline.get [Browse_tree.of_node node]   in
+    print_endline "We have info to create an outline..."
+  )
+  | _ -> ()
+  );
   let _ = type_code (Js.to_string code##code) in
-  let _ = autocomplete Lexing.{pos_fname = ""; pos_lnum = 3; pos_bol = 0; pos_cnum = 5} in
+  let _ = autocomplete test_pos in
   ()
   (*  *)
   (* match target with

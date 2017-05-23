@@ -1,9 +1,10 @@
 open Std
 
-(* type parsetree = [
+type parsetree = [
   | `Interface of Parsetree.signature
   | `Implementation of Parsetree.structure
 ]
+
 
 type comment = (string * Location.t)
 
@@ -15,6 +16,9 @@ type result = {
   parsetree     : parsetree;
   no_labels_for_completion : bool;
 }
+
+(*
+
 
 (* Normal entry point *)
 

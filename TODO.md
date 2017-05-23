@@ -1,9 +1,15 @@
 TODO
 ===
-- week 4:
-  - execute code in webworker for better user experience
-  - hover type information
-  - auto complete support
+- make .cmti versions of selected stdlib packages also available for documentation (see also: https://github.com/ocsigen/js_of_ocaml/blob/b584934d67727fb02bbee903a116e5de1cfcedbd/toplevel/bin/jsoo_mktop.ml)
+- need to figure out how to properly attach it to comments though...
+-
+
+
+
+
+- toplevel style
+- multiple files support
+-
 
 
 
@@ -12,10 +18,6 @@ TODO
   -
 ---
 
-- execute code in a webworker for better user experience
-- hover type information
-- autocomplete support
-- is it possible to dynamically load libraries???
 - is it possible to make it an offline application?!
 - bundle everything into a single JS file
 - toplevel mode

@@ -516,7 +516,7 @@ let initial = {
     cmt_path    = [];
     extensions  = [];
     suffixes    = [(".ml", ".mli"); (".re", ".rei")];
-    stdlib      = None;
+    stdlib      = Some "stdlib";
     reader      = [];
     protocol    = `Json;
     log_file    = None;
@@ -561,7 +561,7 @@ let stdlib =
     | Some stdlib -> stdlib
     | None -> match env with
       | Some stdlib -> stdlib
-      | None -> failwith "not supported"
+      | None -> failwith "XXXX not supported"
 
 let arguments_table =
   let table = Hashtbl.create 67 in

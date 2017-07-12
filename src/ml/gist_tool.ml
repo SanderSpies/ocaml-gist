@@ -1,4 +1,15 @@
 
+let () = (
+  let worker = Worker.create "code_execution_webworker.js" in
+  worker##onmessage <- Dom.handler (fun msg -> (
+    Firebug.console##info (Js.Unsafe.inject msg);
+    Js.bool false
+  ));
+  Js.Unsafe.global##shared <- worker;
+  Firebug.console##log (Js.Unsafe.inject Js.Unsafe.global##shared)
+)
+
+(*
 let info s = (
   Firebug.console##info (Js.string s)
 )
@@ -87,7 +98,7 @@ let initialize () = (
     | Some textarea -> ( i := !i + 1; Some (to_code_mirror !i textarea worker))
     | None -> None
   ) textareas
-  in
+  (* in  *)
   worker##onmessage <- Dom.handler (fun msg -> (
     let id = Js.parseInt msg##data##id in
     let x = List.find (fun res ->
@@ -118,4 +129,4 @@ let initialize () = (
 )
 ;;
 
-initialize ();;
+initialize ();; *)

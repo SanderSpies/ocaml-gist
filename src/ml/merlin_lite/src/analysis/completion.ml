@@ -153,7 +153,7 @@ let map_entry f entry =
 let make_candidate ?get_doc ~attrs ~exact ?prefix_path name ?loc ?path ty =
   let ident = match path with
     | Some path -> Ident.create (Path.last path)
-    | None -> failwith "not implemented"
+    | None -> Ident.create "_"
   in
   let kind, text =
     match ty with

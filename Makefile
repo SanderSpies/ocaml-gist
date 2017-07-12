@@ -67,7 +67,6 @@ merlin_lite: clean
 	$(MERLIN)analysis/outline.ml \
 	$(MERLIN)ocaml/support/cmt_cache.ml \
 	$(MERLIN)analysis/typedtrie.ml \
-	$(MERLIN)utils/local_store.ml \
 	$(MERLIN)utils/misc2.ml \
 	$(MERLIN)analysis/track_definition.ml
 

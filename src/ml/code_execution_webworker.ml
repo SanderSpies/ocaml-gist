@@ -226,11 +226,17 @@ Worker.set_onmessage (fun code ->
         let suggestions = Array.map (fun (name, kind, desc, info) ->
           let doc = if show_docs then
             let li = Longident.flatten (Longident.parse text) in
-            let li = List.rev (List.tl (List.rev li)) @ [name] in
-            let name = String.concat "." li in
-            match documentation pos name with
-            | Some s -> s
-            | _ -> ""
+            let name = (
+              if List.length li > 1 then
+                let li = List.rev (List.tl (List.rev li)) @ [name] in
+                String.concat "." li
+              else
+                ""
+            )
+            in
+              match documentation pos name with
+              | Some s -> s
+              | _ -> ""
           else
             ""
           in

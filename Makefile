@@ -12,7 +12,7 @@ stdlib: clean
 	./stdlib_builder
 
 merlin_lite: clean
-	ocamlfind ocamlc -a -o ./build/merlin_lite.cma \
+	ocamlfind ocamlc -a -o ./docs/merlin_lite.cma \
 	-package str \
 	-package unix \
 	-package yojson \
@@ -72,7 +72,7 @@ merlin_lite: clean
 
 
 code_execution_webworker.cma: merlin_lite stdlib
-	ocamlfind ocamlc -a -o ./build/code_execution_webworker.cma \
+	ocamlfind ocamlc -a -o ./docs/code_execution_webworker.cma \
 	-syntax camlp4o \
 	-linkpkg \
 	-package js_of_ocaml.syntax \
@@ -86,19 +86,20 @@ code_execution_webworker.cma: merlin_lite stdlib
 	-I $(MERLIN)ocaml/typer_$(OCAML_VERSION)/typing \
 	-I $(MERLIN)ocaml/typer_$(OCAML_VERSION)/parsing \
 	-I +compiler-libs \
-		./build/merlin_lite.cma \
+		./docs/merlin_lite.cma \
 		./src/ml/code_execution_webworker.ml
 
 code_execution_webworker: code_execution_webworker.cma
 	jsoo_mktop \
-	./build/code_execution_webworker.cma \
-	-o build/code_execution_webworker \
+	./docs/code_execution_webworker.cma \
+	-o docs/code_execution_webworker \
 	-jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js \
-	-jsopt "--pretty"
-	mv *.cmis.js ./build/
+	-jsopt "--pretty" \
+	-jsopt "--disable shortvar"
+	mv *.cmis.js ./docs/
 
 gist_tool.byte:
-	ocamlfind ocamlc -o ./build/gist_tool.byte \
+	ocamlfind ocamlc -o ./docs/gist_tool.byte \
 	-syntax camlp4o \
 	-linkpkg \
 	-package js_of_ocaml.syntax \
@@ -107,14 +108,14 @@ gist_tool.byte:
 		./src/ml/gist_tool.ml
 
 gist_tool_js:
-	cp ./src/web/codemirror.js build/
-	cp ./src/web/codemirror.css build/
-	cp ./src/web/ocaml.js build/
+	cp ./src/web/codemirror.js docs/
+	cp ./src/web/codemirror.css docs/
+	cp ./src/web/ocaml.js docs/
 
 gist_tool: gist_tool.byte gist_tool_js code_execution_webworker
 	js_of_ocaml \
-	./build/gist_tool.byte \
+	./docs/gist_tool.byte \
 	--opt 3 \
-	-o build/gist_tool.js
+	-o docs/gist_tool.js
 
 output: gist_tool

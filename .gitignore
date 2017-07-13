@@ -1,1 +1,10 @@
 src/ml/merlin/*
+cmtis
+_build
+build
+*.cma
+*.cmi
+*.byte
+*.cmo
+.DS_store
+stdlib_builder

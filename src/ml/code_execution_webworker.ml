@@ -1,4 +1,4 @@
-Worker.import_scripts ["std.js"; "exported-unit.cmis.js"; "stdlib.cmis.js"; ];;
+Worker.import_scripts ["stdlib2.cmis.js"; ];;
 
 let (latest_typed_structure:Typedtree.structure option ref) = ref None;;
 let (latest_typed_signature:Types.signature_item list option ref) = ref None;;
@@ -17,7 +17,16 @@ let type_code code = (
     JsooTop.initialize ();
     let env = !Toploop.toplevel_env in
     Env.reset_cache ();
-    (* TODO implicitly open all the stdlib ones... *)
+    (* let all_cmis = Array.to_list (Sys.readdir "/cmis/") in
+    let all_cmis = List.filter (function
+      | "arg.cmi" -> false
+      | _ -> true
+      ) all_cmis in
+    List.iter (fun cmi -> (
+      let cmi_name = String.capitalize (Filename.remove_extension cmi) in
+      let _ = Env.lookup_module ~load:true (Lident cmi_name) env in
+      ()
+    )) all_cmis; *)
     let (typed_structure, typed_signature, env) = Typemod.type_structure env structure Location.none in
     latest_typed_structure := Some typed_structure;
     latest_typed_signature := Some typed_signature;
@@ -61,30 +70,33 @@ let type_code code = (
 let autocomplete (pos:Lexing.position) str = (
   match !latest_env, !latest_typed_structure with
   | Some latest_env, Some latest_typed_structure -> (
+    let parts = Longident.flatten (Longident.parse str) in
+    if (List.length parts > 1) then (
+      ignore(Env.lookup_module ~load:true (Lident (List.hd parts)) latest_env)
+    );
     let (foo:Mbrowse.t list) = [[(latest_env, Structure latest_typed_structure)]] in
-    let (env, node) = List.hd (List.hd foo) in
+    let (env, node) = List.hd (Mbrowse.enclosing pos foo) in
     let entries = Completion.node_complete env node str in
-    print_endline "autocomplete entries:";
-    let _ = List.iter (fun ({Query_protocol.Compl.name; _}) ->
-      print_endline ("- " ^ name)) entries in
-    ()
+
+    Some (Array.map (fun ({Query_protocol.Compl.name; kind; desc; info}) ->
+       (name, kind, desc, info)) (Array.of_list entries))
   )
   | _ ->
-    ()
+    None
 )
 
 let comments = [("This is an example...", Location.{loc_start = Lexing.{pos_fname = ""; pos_lnum = 20; pos_bol = 0; pos_cnum = 0}; loc_end = Lexing.{pos_fname = ""; pos_lnum = 4; pos_bol = 0; pos_cnum = 20}; loc_ghost = false})]
 ;;
 
-let comment x = (
-  (* print_endline "okay 1";
-  let foo = Track_definition.get_doc ~env ~local_defs:(`Implementation latest_typed_structure) ~pos ~comments ~config:Mconfig.initial (`User_input "List.iter") in
-  print_endline "okay 2";
-  (match foo with
-  | `Found str -> print_endline ("Found this documentation:" ^ str)
-  | _ -> print_endline "No documentation found"); *)
+let documentation pos str = (
+  match !latest_env, !latest_typed_structure with
+  | Some latest_env, Some latest_typed_structure -> (
+    let result = Track_definition.get_doc ~env:latest_env ~local_defs:(`Implementation latest_typed_structure) ~pos ~comments ~config:Mconfig.initial (`User_input str) in
+    match result with
+    | `Found str -> Some str
+    | _ -> None )
+  | _ -> None )
 
-)
 
 let execute_code code = (
   let markLocations = ref [] in
@@ -115,7 +127,7 @@ let execute_code code = (
 
 let load_resource_aux url =
   try
-    print_endline "riiight";
+    (* print_endline "riiight"; *)
     let xml = XmlHttpRequest.create () in
     xml##_open(Js.string "GET", url, Js._false);
     xml##send(Js.null);
@@ -124,28 +136,22 @@ let load_resource_aux url =
 ;;
 
 
-Sys_js.register_autoload' "/" (fun (_,s) -> print_endline "dafuq"; load_resource_aux ((Js.string "cmtis/")##concat(s)))
+(* Sys_js.register_autoload' "/" (fun (_,s) -> print_endline "dafuq"; load_resource_aux ((Js.string "cmtis/")##concat(s)));; *)
 
-let old_loader = !Env.Persistent_signature.load;;
+(* let old_loader = !Env.Persistent_signature.load;; *)
 Env.Persistent_signature.load := (fun ~unit_name ->
   (
     let cmi_infos2 = Cmt_format.read ("/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
     match cmi_infos2 with
     | (Some cmi_infos, _) -> (
-      (* List.iter (fun (c, _) -> print_endline c) cmt_infos.cmt_comments; *)
-      print_endline ("Loading:" ^ unit_name);
-
       Some {
         Env.Persistent_signature.filename = unit_name;
         cmi = cmi_infos
       }
-
       )
-    | _ -> print_endline "No match..."; None
+    | _ -> None
     )
 );;
-
-
 
 Worker.set_onmessage (fun code ->
   let msgType = Js.to_string code##msgType in
@@ -184,15 +190,91 @@ Worker.set_onmessage (fun code ->
     | None -> ()
     )
   | "execute" -> (
-
+      let (result, _) = execute_code (Js.to_string code##code) in
+      Worker.post_message (Js.Unsafe.obj [|
+        ("msgId", code##msgId);
+        ("type", Js.Unsafe.inject (Js.string "execute"));
+        ("result", Js.Unsafe.inject (Js.string result));
+      |])
     )
   | "autocomplete" -> (
-      let pos_fname = Js.to_string code##pos_fname in
-      let pos_lnum = int_of_float (Js.float_of_number code##pos_lnum) in
-      let pos_bol = int_of_float (Js.float_of_number code##pos_bol) in
-      let pos_cnum = int_of_float (Js.float_of_number code##pos_cnum) in
-      let pos = Lexing.{pos_fname = pos_fname; pos_lnum = pos_lnum ; pos_bol = pos_bol; pos_cnum = pos_cnum} in
-      autocomplete pos (Js.to_string code##text)
+      let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
+      let pos_bol = int_of_float (Js.float_of_number code##posBol) in
+      let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
+      let show_docs = code##showDocs in
+      let pos_fname = Js.to_string code##posFname in
+      let pos = Lexing.{
+        pos_fname;
+        pos_lnum;
+        pos_bol;
+        pos_cnum;
+      } in
+      let text = Js.to_string code##text in
+      let result = autocomplete pos text in
+      match result with
+      | Some suggestions ->
+        let kind_to_string = function
+        |`Value -> "Value"
+        |`Constructor -> "Constructor"
+        |`Variant -> "Variant"
+        |`Label -> "Label"
+        |`Module -> "Module"
+        |`Modtype -> "Modtype"
+        |`Type -> "Type"
+        |`MethodCall -> "MethodCall"
+        in
+        let suggestions = Array.map (fun (name, kind, desc, info) ->
+          let doc = if show_docs then
+            let li = Longident.flatten (Longident.parse text) in
+            let li = List.rev (List.tl (List.rev li)) @ [name] in
+            let name = String.concat "." li in
+            match documentation pos name with
+            | Some s -> s
+            | _ -> ""
+          else
+            ""
+          in
+          Js.Unsafe.obj [|
+            ("name", Js.Unsafe.inject (Js.string name));
+            ("kind", Js.Unsafe.inject (Js.string (kind_to_string kind)));
+            ("doc", Js.Unsafe.inject (Js.string doc));
+            (* ("desc", Js.Unsafe.inject (Js.string desc)); *)
+            (* ("desc", desc); *)
+            (* ("info", Js.Unsafe.inject (Js.string info)); *)
+          |]
+        ) suggestions
+        in
+        Worker.post_message (Js.Unsafe.obj [|
+          ("msgId", code##msgId);
+          ("type", Js.Unsafe.inject (Js.string "autocomplete"));
+          ("suggestions", Js.Unsafe.inject (Js.array suggestions));
+        |])
+      | None ->
+        Worker.post_message (Js.Unsafe.obj [|
+            ("msgId", code##msgId);
+            ("type", Js.Unsafe.inject (Js.string "autocomplete"));
+            ("suggestions", Js.Unsafe.inject (Js.array [||]));
+          |])
+    )
+  | "documentation" -> (
+      let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
+      let pos_bol = int_of_float (Js.float_of_number code##posBol) in
+      let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
+      let pos_fname = Js.to_string code##posFname in
+      let pos = Lexing.{
+        pos_fname;
+        pos_lnum;
+        pos_bol;
+        pos_cnum;
+      } in
+      let result = documentation pos (Js.to_string code##text) in
+      match result with
+      | Some s -> Worker.post_message (Js.Unsafe.obj [|
+          ("msgId", code##msgId);
+          ("type", Js.Unsafe.inject (Js.string "documentation"));
+          ("documentation", Js.Unsafe.inject (Js.string s));
+        |])
+      | None -> ()
     )
   | _ -> ()
 (*

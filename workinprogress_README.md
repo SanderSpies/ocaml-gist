@@ -1,14 +1,29 @@
-OCaml gist
+OCaml-editor-webworker
+---
+A work in progress. Needs some extra polishing before it's ready for use.
+
+
+
+Commands
 ===
-OCaml gist turns OCaml files into shareable gist snippets.
 
+type
+---
+Types the current code and gives errors when something is wrong.
 
-Imaginary command line command:
-```bash
-ocaml-gist --stdlib base example1.ml outputFolder/example1Folder/
-```
+autocomplete
+---
+Gives autocomplete suggestions with optionally documentation
+
+documentation
+---
+Documentation for a certain function
+
+execute
+---
+Executes the given code
 
 
 License
----
+===
 MIT

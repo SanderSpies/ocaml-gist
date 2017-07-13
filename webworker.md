@@ -1,19 +1,22 @@
-OCaml-assistant-webworker
+OCaml-webworker
 ===
+The OCaml-webworker executes OCaml code and provides context sensitive
+information.
 
-
-Features
-- Compile OCaml code
-- Retrieve autocomplete suggestions
-- Destruct
-- Occurrences
+Context sensitive information
+---
+- Autocomplete suggestions [works]
+- Destruct [works]
+- Find occurrences
 - Jump to location
-- Outline
-- Documentation
+- Outline [works]
+- Documentation [in progress]
 - Type info
 
-Example
+Demo
 ---
+....
+
 
 License
 ---

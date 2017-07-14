@@ -17,16 +17,15 @@ let type_code code = (
     JsooTop.initialize ();
     let env = !Toploop.toplevel_env in
     Env.reset_cache ();
-    (* let all_cmis = Array.to_list (Sys.readdir "/cmis/") in
-    let all_cmis = List.filter (function
-      | "arg.cmi" -> false
-      | _ -> true
-      ) all_cmis in
+    let all_cmis = Array.to_list (Sys.readdir "/cmis/") in
     List.iter (fun cmi -> (
       let cmi_name = String.capitalize (Filename.remove_extension cmi) in
-      let _ = Env.lookup_module ~load:true (Lident cmi_name) env in
-      ()
-    )) all_cmis; *)
+      try
+        let _ = Env.lookup_module ~load:true (Lident cmi_name) env in
+        ()
+      with
+      | _ -> () (* ignore the errors here for now *);
+    )) all_cmis;
     let (typed_structure, typed_signature, env) = Typemod.type_structure env structure Location.none in
     latest_typed_structure := Some typed_structure;
     latest_typed_signature := Some typed_signature;
@@ -71,9 +70,6 @@ let autocomplete (pos:Lexing.position) str = (
   match !latest_env, !latest_typed_structure with
   | Some latest_env, Some latest_typed_structure -> (
     let parts = Longident.flatten (Longident.parse str) in
-    if (List.length parts > 1) then (
-      ignore(Env.lookup_module ~load:true (Lident (List.hd parts)) latest_env)
-    );
     let (foo:Mbrowse.t list) = [[(latest_env, Structure latest_typed_structure)]] in
     let (env, node) = List.hd (Mbrowse.enclosing pos foo) in
     let entries = Completion.node_complete env node str in
@@ -85,8 +81,7 @@ let autocomplete (pos:Lexing.position) str = (
     None
 )
 
-let comments = [("This is an example...", Location.{loc_start = Lexing.{pos_fname = ""; pos_lnum = 20; pos_bol = 0; pos_cnum = 0}; loc_end = Lexing.{pos_fname = ""; pos_lnum = 4; pos_bol = 0; pos_cnum = 20}; loc_ghost = false})]
-;;
+let comments = []
 
 let documentation pos str = (
   match !latest_env, !latest_typed_structure with
@@ -125,32 +120,22 @@ let execute_code code = (
 )
 ;;
 
-let load_resource_aux url =
-  try
-    (* print_endline "riiight"; *)
-    let xml = XmlHttpRequest.create () in
-    xml##_open(Js.string "GET", url, Js._false);
-    xml##send(Js.null);
-    if xml##status = 200 then Some (xml##responseText) else None
-  with _ -> None
-;;
-
-
-(* Sys_js.register_autoload' "/" (fun (_,s) -> print_endline "dafuq"; load_resource_aux ((Js.string "cmtis/")##concat(s)));; *)
-
-(* let old_loader = !Env.Persistent_signature.load;; *)
 Env.Persistent_signature.load := (fun ~unit_name ->
   (
-    let cmi_infos2 = Cmt_format.read ("/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
-    match cmi_infos2 with
-    | (Some cmi_infos, _) -> (
-      Some {
-        Env.Persistent_signature.filename = unit_name;
-        cmi = cmi_infos
-      }
-      )
-    | _ -> None
+    try (
+      let cmi_infos2 = Cmt_format.read ("/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
+      match cmi_infos2 with
+      | (Some cmi_infos, _) -> (
+        Some {
+          Env.Persistent_signature.filename = unit_name;
+          cmi = cmi_infos
+        }
+        )
+      | _ -> None
     )
+    with
+    | _ -> None
+  )
 );;
 
 Worker.set_onmessage (fun code ->
@@ -282,31 +267,6 @@ Worker.set_onmessage (fun code ->
         |])
       | None -> ()
     )
-  | "destruct" -> (
-    failwith "not implemented yet..."
-    (* let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
-    let pos_bol = int_of_float (Js.float_of_number code##posBol) in
-    let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
-    let pos_fname = Js.to_string code##posFname in
-    let pos = Lexing.{
-      pos_fname;
-      pos_lnum;
-      pos_bol;
-      pos_cnum;
-    } in
-    match !latest_env, !latest_typed_structure with
-    | Some env, Some ts ->
-      let nodes = Mbrowse.enclosing pos [[(env, Structure ts)]] in
-      (match nodes with
-      | (env, node) :: parents -> (
-        try
-          Destruct.node node (List.map snd parents);
-          print_endline "this worked...";
-        with
-        | _ -> ())
-      | _ -> ());
-      () *)
-    )
   | "outline" -> (
       match !latest_env, !latest_typed_structure with
       | Some env, Some ts ->
@@ -321,45 +281,73 @@ Worker.set_onmessage (fun code ->
 
       | _ -> ()
     )
+  | "shape" -> (
+      match !latest_env, !latest_typed_structure with
+      | Some env, Some ts ->
+        let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
+        let pos_bol = int_of_float (Js.float_of_number code##posBol) in
+        let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
+        let pos_fname = Js.to_string code##posFname in
+        let pos = Lexing.{
+          pos_fname;
+          pos_lnum;
+          pos_bol;
+          pos_cnum;
+        } in
+        let shapes = Outline.shape pos [Browse_tree.of_node (Structure ts)] in
+        let result = Std.Json.to_string (`List (List.map Query_json.json_of_shape shapes)) in
+        Worker.post_message (Js.Unsafe.obj [|
+            ("msgId", code##msgId);
+            ("type", Js.Unsafe.inject (Js.string "shape"));
+            ("shape", Json.unsafe_input (Js.string result));
+          |])
+      | _ -> ()
+    )
+    | "locate" -> (
+        match !latest_env, !latest_typed_structure with
+        | Some env, Some ts ->
+          let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
+          let pos_bol = int_of_float (Js.float_of_number code##posBol) in
+          let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
+          let pos_fname = Js.to_string code##posFname in
+          let pos = Lexing.{
+            pos_fname;
+            pos_lnum;
+            pos_bol;
+            pos_cnum;
+          } in
+          let str = Js.to_string code##text in
+          let result = Track_definition.from_string ~env:env ~local_defs:(`Implementation ts) ~pos ~config:Mconfig.initial `ML str in
+          let result = match result with
+          | `At_origin -> `String "Already at definition point"
+          | `Builtin s ->
+            `String (Printf.sprintf "%S is a builtin, and it is therefore impossible \
+                              to jump to its definition" s)
+          | `Invalid_context -> `String "Not a valid identifier"
+          | `Not_found (id, None) -> `String ("didn't manage to find " ^ id)
+          | `Not_found (i, Some f) ->
+            `String
+              (Printf.sprintf "%s was supposed to be in %s but could not be found" i f)
+          | `Not_in_env str ->
+            `String (Printf.sprintf "Not in environment '%s'" str)
+          | `File_not_found msg ->
+            `String msg
+          | `Found (None,pos) ->
+            `Assoc ["pos", Std.Lexing.json_of_position pos]
+          | `Found (Some file,pos) ->
+            `Assoc ["file",`String file; "pos", Std.Lexing.json_of_position pos]
+          in
+          let result = Std.Json.to_string result in
+          Worker.post_message (Js.Unsafe.obj [|
+              ("msgId", code##msgId);
+              ("type", Js.Unsafe.inject (Js.string "locate"));
+              ("locate", Json.unsafe_input (Js.string result));
+            |])
+        | _ -> ()
+      )
+  | "case_analysis"
+  | "occurrences" -> (
+      failwith "not implemented yet"
+    )
   | _ -> ()
-(*
-  let target = "foo" in
-  let test_pos = Lexing.{pos_fname = ""; pos_lnum = 3; pos_bol = 0; pos_cnum = 5} in
-  let x = Destruct.node in
-  let x = Ocamldoc.associate_comment in
-  let x = Browse_tree.all_constructor_occurrences in
-  (* outline test *)
-  (match !latest_env, !latest_typed_structure with
-  | Some env, Some ts -> (
-    let (foo:Mbrowse.t list) = [[(env, Structure ts)]] in
-    let (env, node) = List.hd (List.hd foo) in
-    let x = Outline.get [Browse_tree.of_node node]   in
-    print_endline "We have info to create an outline..."
-  )
-  | _ -> ()
-  );
-  let _ = type_code (Js.to_string code##code) in
-  print_endline "GOOOD";
-  let _ = autocomplete test_pos in
-  () *)
-  (*  *)
-  (* match target with
-  | "type" -> (type_code (Js.to_string code##code); ())
-  | "autocomplete" -> () (* implemented, but not connected here yet *)
-  | "compile" -> () (* implemented, but not connected here yet *)
-  | "destruct" -> () (* should work, not tested yet...  *)
-  | "occurences" -> failwith "not implemented yet" (* get all locations where the variable occurs *)
-  | "outline" -> failwith "not implemented yet" (* get outline o*)
-
-  | "locate" -> failwith "not implemented yet" (* jump to location *)
-  | "document" -> failwith "not implemented yet" (* get ocaml doc for location *)
-
-  | _ -> ()
-; *)
-  (* let (result, markLocations) = execute_code (Js.to_string code##code) in
-  Worker.post_message (Js.Unsafe.obj [|
-    ("id", code##id);
-    ("result", Js.Unsafe.inject (Js.string (String.trim result)));
-    ("locations", Js.Unsafe.inject !markLocations)
-  |]) *)
 );;

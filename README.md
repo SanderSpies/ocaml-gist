@@ -2,6 +2,10 @@ OCaml-webworker
 ===
 A webworker to assist with OCaml editor experiences on the web
 
+Warning
+---
+This is a work in progress, it's not easily reusable at the moment
+
 How to install
 ---
 I have no idea...
@@ -10,6 +14,7 @@ Available commands
 ---
 
 - type
+
 Used to type-check a piece of code, also needed for all the other tasks besides
 `execute`. Note that always the last correctly typed version is stored.
 

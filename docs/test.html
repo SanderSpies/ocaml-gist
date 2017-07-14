@@ -28,7 +28,7 @@
     <p>
     Some examples:
 
-    Note that `type` most happen before `autocomplete`, `documentation`, `outline`.
+    Note that `type` most happen before `complete_prefix`, `documentation`, `outline`.
     </p>
     <div><code>
       shared.postMessage({msgType: "type", code: "module List2 = struct let it a = a + 2 end", msgId: 1});
@@ -39,13 +39,30 @@
     </code>
 </div><div>
     <code>
-      shared.postMessage({msgType: "autocomplete", msgId: 1, posFname: "xxx", posLnum: 0, posBol: 0, posCnum: 0, text: "List.it", showDocs:true});
+      shared.postMessage({msgType: "complete_prefix", msgId: 1, posFname: "xxx", posLnum: 0, posBol: 0, posCnum: 0, text: "List.it", showDocs:true});
     </code>
 </div><div>
     <code>
       shared.postMessage({msgType: "documentation", msgId: 1, posFname: "xxx", posLnum: 0, posBol: 0, posCnum: 0, text: "List.iteri"})
     </code>
 </div>
+<div>
+    <code>
+      shared.postMessage({msgType: "locate", msgId: 1, posFname: "", posLnum: 2, posBol: 0, posCnum: 0, text: "List.iter"})
+    </code>
+</div>
+<div>
+    <code>
+      shared.postMessage({msgType: "shape", msgId: 1, posFname: "", posLnum: 2, posBol: 0, posCnum: 0})
+    </code>
+</div>
+<div>
+    <code>
+      shared.postMessage({msgType: "outline", msgId: 1})
+    </code>
+</div>
+
+
 <div>
     <code>
       shared.postMessage({msgType: "outline", msgId: 1})

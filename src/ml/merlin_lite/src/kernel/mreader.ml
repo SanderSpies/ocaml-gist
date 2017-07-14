@@ -95,7 +95,7 @@ let try_with_reader tr config source f =
   | Some reader ->
     Misc.try_finally (fun () -> f reader) stop *)
 
-let print_pretty tr config source tree =
+let print_pretty tree =
     let ppf, to_string = Std.Format.to_string () in
     let open Extend_protocol.Reader in
     begin match tree with

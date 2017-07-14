@@ -28,7 +28,7 @@
     <p>
     Some examples:
 
-    Note that `type` most happen before `autocomplete` and `documentation`.
+    Note that `type` most happen before `autocomplete`, `documentation`, `outline`.
     </p>
     <div><code>
       shared.postMessage({msgType: "type", code: "module List2 = struct let it a = a + 2 end", msgId: 1});
@@ -44,6 +44,11 @@
 </div><div>
     <code>
       shared.postMessage({msgType: "documentation", msgId: 1, posFname: "xxx", posLnum: 0, posBol: 0, posCnum: 0, text: "List.iteri"})
+    </code>
+</div>
+<div>
+    <code>
+      shared.postMessage({msgType: "outline", msgId: 1})
     </code>
 </div>
   </body>

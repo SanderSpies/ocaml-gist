@@ -52,6 +52,7 @@ merlin_lite: clean
 	$(MERLIN)kernel/mconfig.ml \
 	$(MERLIN)kernel/mreader.ml \
 	$(MERLIN)frontend/query_protocol.ml \
+	$(MERLIN)frontend/query_json.ml \
 	$(MERLIN)ocaml/typer_$(OCAML_VERSION)/tail_analysis.ml \
 	$(MERLIN)ocaml/typer_$(OCAML_VERSION)/typing/tast_helper.ml \
 	$(MERLIN)ocaml/typer_$(OCAML_VERSION)/typing/untypeast2.ml \

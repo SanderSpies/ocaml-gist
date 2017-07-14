@@ -197,7 +197,7 @@ Worker.set_onmessage (fun code ->
         ("result", Js.Unsafe.inject (Js.string result));
       |])
     )
-  | "autocomplete" -> (
+  | "complete_prefix" -> (
       let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
       let pos_bol = int_of_float (Js.float_of_number code##posBol) in
       let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
@@ -281,6 +281,45 @@ Worker.set_onmessage (fun code ->
           ("documentation", Js.Unsafe.inject (Js.string s));
         |])
       | None -> ()
+    )
+  | "destruct" -> (
+    failwith "not implemented yet..."
+    (* let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
+    let pos_bol = int_of_float (Js.float_of_number code##posBol) in
+    let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
+    let pos_fname = Js.to_string code##posFname in
+    let pos = Lexing.{
+      pos_fname;
+      pos_lnum;
+      pos_bol;
+      pos_cnum;
+    } in
+    match !latest_env, !latest_typed_structure with
+    | Some env, Some ts ->
+      let nodes = Mbrowse.enclosing pos [[(env, Structure ts)]] in
+      (match nodes with
+      | (env, node) :: parents -> (
+        try
+          Destruct.node node (List.map snd parents);
+          print_endline "this worked...";
+        with
+        | _ -> ())
+      | _ -> ());
+      () *)
+    )
+  | "outline" -> (
+      match !latest_env, !latest_typed_structure with
+      | Some env, Some ts ->
+        let outline = Outline.get [Browse_tree.of_node (Structure ts)] in
+        let json = Query_json.json_of_outline outline in
+        let result = Std.Json.to_string (`List json) in
+        Worker.post_message (Js.Unsafe.obj [|
+            ("msgId", code##msgId);
+            ("type", Js.Unsafe.inject (Js.string "outline"));
+            ("outline", Json.unsafe_input (Js.string result));
+          |])
+
+      | _ -> ()
     )
   | _ -> ()
 (*

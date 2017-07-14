@@ -382,7 +382,7 @@ let find_branch patterns sub =
   in
   aux [] patterns
 
-let node tr config source node parents =
+let node node parents =
   let open Extend_protocol.Reader in
   let loc = Mbrowse.node_loc node in
   match node with
@@ -405,8 +405,8 @@ let node tr config source node parents =
         needs_parentheses parents, Ast_helper.Exp.match_ pexp cases
       )
     in
-    let str = Mreader.print_pretty tr
-        config source (Pretty_expression result) in
+    let str = Mreader.print_pretty
+        (Pretty_expression result) in
     let str = if needs_parentheses then "(" ^ str ^ ")" else str in
     loc, str
   | Pattern patt ->
@@ -414,8 +414,8 @@ let node tr config source node parents =
     List.iter patterns ~f:(fun p ->
       let p = filter_pat_attr (Untypeast2.untype_pattern p) in
       Logger.logf "destruct" "EXISTING" "%t"
-        (fun () -> Mreader.print_pretty tr
-            config source (Pretty_pattern p))
+        (fun () -> Mreader.print_pretty
+            (Pretty_pattern p))
     ) ;
     let pss = List.map patterns ~f:(fun x -> [ x ]) in
     begin match Parmatch2.complete_partial pss with
@@ -427,8 +427,8 @@ let node tr config source node parents =
         let open Location in
         { last_case_loc with loc_start = last_case_loc.loc_end }
       in
-      let str = Mreader.print_pretty tr
-           config source (Pretty_case_list [ case ]) in
+      let str = Mreader.print_pretty
+           (Pretty_case_list [ case ]) in
       loc, str
     | None ->
       if not (destructible patt) then raise Nothing_to_do else
@@ -439,8 +439,8 @@ let node tr config source node parents =
         (* If only one pattern is generated, then we're only refining the
            current pattern, not generating new branches. *)
         let ppat = filter_pat_attr (Untypeast2.untype_pattern more_precise) in
-        let str = Mreader.print_pretty tr
-            config source (Pretty_pattern ppat) in
+        let str = Mreader.print_pretty
+            (Pretty_pattern ppat) in
         patt.Typedtree.pat_loc, str
       | sub_patterns ->
         let rev_before, after, top_patt =
@@ -477,8 +477,8 @@ let node tr config source node parents =
             )
           in
           let ppat = filter_pat_attr (Untypeast2.untype_pattern p) in
-          let str = Mreader.print_pretty tr
-              config source (Pretty_pattern ppat) in
+          let str = Mreader.print_pretty
+              (Pretty_pattern ppat) in
           top_patt.Typedtree.pat_loc, str
       end
     end

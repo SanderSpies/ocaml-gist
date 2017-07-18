@@ -4,12 +4,6 @@ let (latest_typed_structure:Typedtree.structure option ref) = ref None;;
 let (latest_typed_signature:Types.signature_item list option ref) = ref None;;
 let (latest_env:Env.t option ref) = ref None;;
 
-let open_implicit_module m env =
-  let open Asttypes in
-  let lid = {loc = Location.in_file "command line";
-             txt = Longident.parse m } in
-  snd (Typemod.type_open_ Override env lid.loc lid)
-
 let type_code code = (
   let lexbuf = Lexing.from_string code in
   (try
@@ -17,7 +11,7 @@ let type_code code = (
     JsooTop.initialize ();
     let env = !Toploop.toplevel_env in
     Env.reset_cache ();
-    let all_cmis = Array.to_list (Sys.readdir "/cmis/") in
+    let all_cmis = Array.to_list (Sys.readdir "/static/cmis/") in
     List.iter (fun cmi -> (
       let cmi_name = String.capitalize (Filename.remove_extension cmi) in
       try
@@ -123,7 +117,7 @@ let execute_code code = (
 Env.Persistent_signature.load := (fun ~unit_name ->
   (
     try (
-      let cmi_infos2 = Cmt_format.read ("/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
+      let cmi_infos2 = Cmt_format.read ("/static/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
       match cmi_infos2 with
       | (Some cmi_infos, _) -> (
         Some {
@@ -139,10 +133,10 @@ Env.Persistent_signature.load := (fun ~unit_name ->
 );;
 
 Worker.set_onmessage (fun code ->
-  let msgType = Js.to_string code##msgType in
+  let msgType = Js.to_string code##.msgType in
   match msgType with
   | "type" -> (
-    let err = type_code (Js.to_string code##code) in
+    let err = type_code (Js.to_string code##.code) in
     match err with
     | Some (m1, m2, locs, s) ->
       let result = Array.of_list (List.map (fun {Location.loc_start; loc_end} ->
@@ -166,7 +160,7 @@ Worker.set_onmessage (fun code ->
         locs)
       in
       Worker.post_message (Js.Unsafe.obj [|
-        ("msgId", code##msgId);
+        ("msgId", code##.msgId);
         ("type", Js.Unsafe.inject (Js.string m1));
         ("subtype", Js.Unsafe.inject (Js.string m2));
         ("locations", Js.Unsafe.inject (Js.array result));
@@ -175,26 +169,26 @@ Worker.set_onmessage (fun code ->
     | None -> ()
     )
   | "execute" -> (
-      let (result, _) = execute_code (Js.to_string code##code) in
+      let (result, _) = execute_code (Js.to_string code##.code) in
       Worker.post_message (Js.Unsafe.obj [|
-        ("msgId", code##msgId);
+        ("msgId", code##.msgId);
         ("type", Js.Unsafe.inject (Js.string "execute"));
         ("result", Js.Unsafe.inject (Js.string result));
       |])
     )
   | "complete_prefix" -> (
-      let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
-      let pos_bol = int_of_float (Js.float_of_number code##posBol) in
-      let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
-      let show_docs = code##showDocs in
-      let pos_fname = Js.to_string code##posFname in
+      let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
+      let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
+      let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
+      let show_docs = code##.showDocs in
+      let pos_fname = Js.to_string code##.posFname in
       let pos = Lexing.{
         pos_fname;
         pos_lnum;
         pos_bol;
         pos_cnum;
       } in
-      let text = Js.to_string code##text in
+      let text = Js.to_string code##.text in
       let result = autocomplete pos text in
       match result with
       | Some suggestions ->
@@ -236,32 +230,32 @@ Worker.set_onmessage (fun code ->
         ) suggestions
         in
         Worker.post_message (Js.Unsafe.obj [|
-          ("msgId", code##msgId);
+          ("msgId", code##.msgId);
           ("type", Js.Unsafe.inject (Js.string "autocomplete"));
           ("suggestions", Js.Unsafe.inject (Js.array suggestions));
         |])
       | None ->
         Worker.post_message (Js.Unsafe.obj [|
-            ("msgId", code##msgId);
+            ("msgId", code##.msgId);
             ("type", Js.Unsafe.inject (Js.string "autocomplete"));
             ("suggestions", Js.Unsafe.inject (Js.array [||]));
           |])
     )
   | "documentation" -> (
-      let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
-      let pos_bol = int_of_float (Js.float_of_number code##posBol) in
-      let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
-      let pos_fname = Js.to_string code##posFname in
+      let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
+      let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
+      let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
+      let pos_fname = Js.to_string code##.posFname in
       let pos = Lexing.{
         pos_fname;
         pos_lnum;
         pos_bol;
         pos_cnum;
       } in
-      let result = documentation pos (Js.to_string code##text) in
+      let result = documentation pos (Js.to_string code##.text) in
       match result with
       | Some s -> Worker.post_message (Js.Unsafe.obj [|
-          ("msgId", code##msgId);
+          ("msgId", code##.msgId);
           ("type", Js.Unsafe.inject (Js.string "documentation"));
           ("documentation", Js.Unsafe.inject (Js.string s));
         |])
@@ -274,7 +268,7 @@ Worker.set_onmessage (fun code ->
         let json = Query_json.json_of_outline outline in
         let result = Std.Json.to_string (`List json) in
         Worker.post_message (Js.Unsafe.obj [|
-            ("msgId", code##msgId);
+            ("msgId", code##.msgId);
             ("type", Js.Unsafe.inject (Js.string "outline"));
             ("outline", Json.unsafe_input (Js.string result));
           |])
@@ -284,10 +278,10 @@ Worker.set_onmessage (fun code ->
   | "shape" -> (
       match !latest_env, !latest_typed_structure with
       | Some env, Some ts ->
-        let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
-        let pos_bol = int_of_float (Js.float_of_number code##posBol) in
-        let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
-        let pos_fname = Js.to_string code##posFname in
+        let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
+        let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
+        let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
+        let pos_fname = Js.to_string code##.posFname in
         let pos = Lexing.{
           pos_fname;
           pos_lnum;
@@ -297,7 +291,7 @@ Worker.set_onmessage (fun code ->
         let shapes = Outline.shape pos [Browse_tree.of_node (Structure ts)] in
         let result = Std.Json.to_string (`List (List.map Query_json.json_of_shape shapes)) in
         Worker.post_message (Js.Unsafe.obj [|
-            ("msgId", code##msgId);
+            ("msgId", code##.msgId);
             ("type", Js.Unsafe.inject (Js.string "shape"));
             ("shape", Json.unsafe_input (Js.string result));
           |])
@@ -306,17 +300,17 @@ Worker.set_onmessage (fun code ->
     | "locate" -> (
         match !latest_env, !latest_typed_structure with
         | Some env, Some ts ->
-          let pos_lnum = int_of_float (Js.float_of_number code##posLnum) in
-          let pos_bol = int_of_float (Js.float_of_number code##posBol) in
-          let pos_cnum = int_of_float (Js.float_of_number code##posCnum) in
-          let pos_fname = Js.to_string code##posFname in
+          let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
+          let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
+          let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
+          let pos_fname = Js.to_string code##.posFname in
           let pos = Lexing.{
             pos_fname;
             pos_lnum;
             pos_bol;
             pos_cnum;
           } in
-          let str = Js.to_string code##text in
+          let str = Js.to_string code##.text in
           let result = Track_definition.from_string ~env:env ~local_defs:(`Implementation ts) ~pos ~config:Mconfig.initial `ML str in
           let result = match result with
           | `At_origin -> `String "Already at definition point"
@@ -339,7 +333,7 @@ Worker.set_onmessage (fun code ->
           in
           let result = Std.Json.to_string result in
           Worker.post_message (Js.Unsafe.obj [|
-              ("msgId", code##msgId);
+              ("msgId", code##.msgId);
               ("type", Js.Unsafe.inject (Js.string "locate"));
               ("locate", Json.unsafe_input (Js.string result));
             |])

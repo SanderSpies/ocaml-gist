@@ -11,7 +11,7 @@ let type_code code = (
     JsooTop.initialize ();
     let env = !Toploop.toplevel_env in
     Env.reset_cache ();
-    let all_cmis = Array.to_list (Sys.readdir "/static/cmis/") in
+    let all_cmis = Array.to_list (Sys.readdir "/cmis/") in
     List.iter (fun cmi -> (
       let cmi_name = String.capitalize (Filename.remove_extension cmi) in
       try
@@ -117,7 +117,7 @@ let execute_code code = (
 Env.Persistent_signature.load := (fun ~unit_name ->
   (
     try (
-      let cmi_infos2 = Cmt_format.read ("/static/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
+      let cmi_infos2 = Cmt_format.read ("/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
       match cmi_infos2 with
       | (Some cmi_infos, _) -> (
         Some {

@@ -1,213 +1,214 @@
 (rule
   ((targets (std.ml))
-   (deps    (src/ml/merlin_lite/src/utils/std.ml))
+   (deps    (merlin_lite/src/utils/std.ml))
    (action  (copy ${<} ${@}))))
 
-(rule
- ((targets (extend_protocol.ml))
-  (deps    (src/ml/merlin_lite/src/extend/extend_protocol.ml))
-  (action  (copy ${<} ${@}))))
+  (rule
+   ((targets (extend_protocol.ml))
+    (deps    (merlin_lite/src/extend/extend_protocol.ml))
+    (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (sturgeon_stub.ml))
-  (deps    (src/ml/merlin_lite/src/sturgeon_null/sturgeon_stub.ml))
+  (deps    (merlin_lite/src/sturgeon_null/sturgeon_stub.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (logger.ml))
-  (deps    (src/ml/merlin_lite/src/utils/logger.ml))
+  (deps    (merlin_lite/src/utils/logger.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (stat_cache.ml))
-  (deps    (src/ml/merlin_lite/src/utils/stat_cache.ml))
+  (deps    (merlin_lite/src/utils/stat_cache.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (file_cache.ml))
-  (deps    (src/ml/merlin_lite/src/utils/file_cache.ml))
+  (deps    (merlin_lite/src/utils/file_cache.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (browse_raw.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/typer_404/browse_raw.ml))
+  (deps    (merlin_lite/src/ocaml/typer_404/browse_raw.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (raw_compat.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/typer_404/raw_compat.ml))
+  (deps    (merlin_lite/src/ocaml/typer_404/raw_compat.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (location_aux.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/support/location_aux.ml))
+  (deps    (merlin_lite/src/ocaml/support/location_aux.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (saved_parts.mli))
-  (deps    (src/ml/merlin_lite/src/ocaml/typer_404/saved_parts.mli))
+  (deps    (merlin_lite/src/ocaml/typer_404/saved_parts.mli))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (saved_parts.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/typer_404/saved_parts.ml))
+  (deps    (merlin_lite/src/ocaml/typer_404/saved_parts.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (pprintast2.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/typer_404/parsing/pprintast2.ml))
+  (deps    (merlin_lite/src/ocaml/typer_404/parsing/pprintast2.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (msupport.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/support/msupport.ml))
+  (deps    (merlin_lite/src/ocaml/support/msupport.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (path_aux.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/support/path_aux.ml))
+  (deps    (merlin_lite/src/ocaml/support/path_aux.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (mbrowse.ml))
-  (deps    (src/ml/merlin_lite/src/kernel/mbrowse.ml))
+  (deps    (merlin_lite/src/kernel/mbrowse.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (marg.ml))
-  (deps    (src/ml/merlin_lite/src/utils/marg.ml))
+  (deps    (merlin_lite/src/utils/marg.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (ppxsetup.ml))
-  (deps    (src/ml/merlin_lite/src/utils/ppxsetup.ml))
+  (deps    (merlin_lite/src/utils/ppxsetup.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (msource.ml))
-  (deps    (src/ml/merlin_lite/src/kernel/msource.ml))
+  (deps    (merlin_lite/src/kernel/msource.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (mconfig.ml))
-  (deps    (src/ml/merlin_lite/src/kernel/mconfig.ml))
+  (deps    (merlin_lite/src/kernel/mconfig.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (mreader.ml))
-  (deps    (src/ml/merlin_lite/src/kernel/mreader.ml))
+  (deps    (merlin_lite/src/kernel/mreader.ml))
   (action  (copy ${<} ${@}))))
 
 
 (rule
  ((targets (query_protocol.ml))
-  (deps    (src/ml/merlin_lite/src/frontend/query_protocol.ml))
+  (deps    (merlin_lite/src/frontend/query_protocol.ml))
   (action  (copy ${<} ${@}))))
 
 
 (rule
  ((targets (query_json.ml))
-  (deps    (src/ml/merlin_lite/src/frontend/query_json.ml))
+  (deps    (merlin_lite/src/frontend/query_json.ml))
   (action  (copy ${<} ${@}))))
 
 
 (rule
  ((targets (tail_analysis.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/typer_404/tail_analysis.ml))
+  (deps    (merlin_lite/src/ocaml/typer_404/tail_analysis.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (tast_helper.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/typer_404/typing/tast_helper.ml))
+  (deps    (merlin_lite/src/ocaml/typer_404/typing/tast_helper.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (untypeast2.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/typer_404/typing/untypeast2.ml))
+  (deps    (merlin_lite/src/ocaml/typer_404/typing/untypeast2.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (parmatch2.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/typer_404/typing/parmatch2.ml))
+  (deps    (merlin_lite/src/ocaml/typer_404/typing/parmatch2.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (longident2.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/typer_404/parsing/longident2.ml))
+  (deps    (merlin_lite/src/ocaml/typer_404/parsing/longident2.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (browse_tree.ml))
-  (deps    (src/ml/merlin_lite/src/analysis/browse_tree.ml))
+  (deps    (merlin_lite/src/analysis/browse_tree.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (browse_misc.ml))
-  (deps    (src/ml/merlin_lite/src/analysis/browse_misc.ml))
+  (deps    (merlin_lite/src/analysis/browse_misc.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (type_utils.ml))
-  (deps    (src/ml/merlin_lite/src/analysis/type_utils.ml))
+  (deps    (merlin_lite/src/analysis/type_utils.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (expansion.ml))
-  (deps    (src/ml/merlin_lite/src/analysis/expansion.ml))
+  (deps    (merlin_lite/src/analysis/expansion.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (completion.ml))
-  (deps    (src/ml/merlin_lite/src/analysis/completion.ml))
+  (deps    (merlin_lite/src/analysis/completion.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (destruct.ml))
-  (deps    (src/ml/merlin_lite/src/analysis/destruct.ml))
+  (deps    (merlin_lite/src/analysis/destruct.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (ocamldoc.ml))
-  (deps    (src/ml/merlin_lite/src/analysis/ocamldoc.ml))
+  (deps    (merlin_lite/src/analysis/ocamldoc.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (outline.ml))
-  (deps    (src/ml/merlin_lite/src/analysis/outline.ml))
+  (deps    (merlin_lite/src/analysis/outline.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (cmt_cache.ml))
-  (deps    (src/ml/merlin_lite/src/ocaml/support/cmt_cache.ml))
+  (deps    (merlin_lite/src/ocaml/support/cmt_cache.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (typedtrie.ml))
-  (deps    (src/ml/merlin_lite/src/analysis/typedtrie.ml))
+  (deps    (merlin_lite/src/analysis/typedtrie.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (misc2.ml))
-  (deps    (src/ml/merlin_lite/src/utils/misc2.ml))
+  (deps    (merlin_lite/src/utils/misc2.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (track_definition.ml))
-  (deps    (src/ml/merlin_lite/src/analysis/track_definition.ml))
+  (deps    (merlin_lite/src/analysis/track_definition.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (code_execution_webworker.ml))
-  (deps    (src/ml/code_execution_webworker.ml))
+  (deps    (src/code_execution_webworker.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (gist_tool.ml))
-  (deps    (src/ml/gist_tool.ml))
+  (deps    (src/gist_tool.ml))
   (action  (copy ${<} ${@}))))
 
 (library (
-  (name code_execution_webworker)
+  (name ocaml_webworker)
+  (public_name ocaml-webworker)
   (libraries (js_of_ocaml-compiler js_of_ocaml js_of_ocaml-toplevel compiler-libs yojson str unix))
   (modules (std
             extend_protocol
@@ -253,55 +254,23 @@
 ))
 
 (rule (
-  (targets (code_execution_webworker.js))
-  (deps (code_execution_webworker.cma))
+  (targets (ocaml_webworker.js))
+  (deps (ocaml_webworker.cma))
   (action (progn
-    (system "jsoo_mktop -package str -package unix -jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js  code_execution_webworker.cma -o code_execution_webworker.js")
+    (system "jsoo_mktop -package str -package unix -jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js  ocaml_webworker.cma -o ocaml_webworker.js")
   ))
 ))
-
-(executable (
-  (name gist_tool)
-  (modules (gist_tool))
-  (libraries (js_of_ocaml))
-  (preprocess (pps (js_of_ocaml-ppx)))
-))
-
-(rule
- ((targets (stdlib_builder.ml))
-  (deps    (src/ml/build/stdlib_builder.ml))
-  (action  (copy ${<} ${@}))))
 
 (executable (
   (name stdlib_builder)
-  (libraries (findlib))
+  (package ocaml-webworker)
+  (public_name og-stdlib)
+  (libraries (findlib js_of_ocaml unix))
   (modules (stdlib_builder))
 ))
 
-(rule
- ((targets (test.html))
-  (deps    (docs/test.html))
-  (action  (copy ${<} ${@}))))
-
-(alias (
-  (name build)
-  (deps (
-    test.html
-    gist_tool.bc.js
-    code_execution_webworker.js
-    stdlib_builder.exe
-  ))
-  (action (progn
-    (system "rm -rf cmtis")
-    (system "mkdir cmtis")
-    (system "./stdlib_builder.exe")
-  ))
-))
-
-(alias (
-  (name run)
-  (deps ((alias build)))
-  (action (progn
-    (system "python -m SimpleHTTPServer")
-  ))
+(install (
+  (section bin)
+  (package ocaml-webworker)
+  (files (ocaml_webworker.js))
 ))

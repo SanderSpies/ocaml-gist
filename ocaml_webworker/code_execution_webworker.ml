@@ -1,4 +1,4 @@
-Worker.import_scripts ["stdlib2.cmis.js"; ];;
+Worker.import_scripts ["stdlib.js"; ];;
 
 let (latest_typed_structure:Typedtree.structure option ref) = ref None;;
 let (latest_typed_signature:Types.signature_item list option ref) = ref None;;

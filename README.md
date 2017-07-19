@@ -1,54 +1,37 @@
-OCaml-webworker
+OCaml-gist
 ===
-A webworker to assist with OCaml editor experiences on the web
+Tooling to assist with OCaml editor experiences on the web.
 
 Warning
 ---
-This is a work in progress, it's not easily reusable at the moment
+Work in progress. I'm trying to get it a shape where it's usable by others.
 
-How to install
+The following text is incorrect for now.
+
+Creating a standard library
 ---
-I have no idea...
+By default the `og-stdlib` takes all the `.cmti` files in the directory where
+compiler-libs is located and runs `jsoo_mkcmis` on them. It then combines
+them to a single `stdlib.cmis.js` file.
 
-Available commands
+This file is expected to be loaded by the OCaml-webworker.
+
+Options:
+- `-stdlib ./foo/bar`
+  To change the source of the stdlib.
+- `-package foo`
+  To add a package to the stdlib.
+
+Creating a webworker
 ---
+The `og-webworker` command creates a webworker which expects a `stdlib.cmis.js`
+file to be present in the same directory.
 
+This webworker is expected to be loaded by another tool, like the gist tool
+below.
+
+It supports the following commands:
 - type
-
-Used to type-check a piece of code, also needed for all the other tasks besides
-`execute`. Note that always the last correctly typed version is stored.
-
-Request:
-```json
-{
-  "msgId": 123,
-  "msgType": "type",
-  "code": "let a = \"an example\""
-}
-```
-
-Response in case of error:
-```json
-{
-  "msgId": 123,
-  "type": "SyntaxError|TypemodError|TypetexpError|TypecoreError",
-  "subtype": "Something",
-  "locations": [{
-    "loc_end": {
-      "pos_bol": 0,
-      "pos_cnum": 5,
-      "pos_fname": "",
-      "pos_lnum": 1
-    },
-    "loc_start":{
-      "pos_bol": 0,
-      "pos_cnum": 17,
-      "pos_fname": "",
-      "pos_lnum": 1
-    }
-  }]
-}
-```
 - execute
 - complete_prefix
 - locate
@@ -56,17 +39,14 @@ Response in case of error:
 - shape
 - documentation
 
+Currently it doesn't support any command-line options.
 
-Demo
+Gist tool for libraries
 ---
-Warning: experience is suboptimal, a better one will arrive later:
+To create a gist for a set of example files run `og-generate`.
 
-https://sanderspies.github.io/ocaml-webworker/test.html
-
-Issues
----
-- no proper error reporting with wrong input
-- needs way more documentation
+By default it will take all the `.ml` files in the current folder and
+create an online example experience.
 
 License
 ===

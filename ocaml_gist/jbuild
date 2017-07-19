@@ -1,0 +1,32 @@
+(executable (
+  (name ocaml_gist)
+  (modules (ocaml_gist))
+  (libraries (js_of_ocaml))
+  (preprocess (pps (js_of_ocaml-ppx)))
+))
+
+
+
+(rule
+ ((targets (ocaml_webworker.js))
+  (action  (copy ${bin:ocaml_webworker.js} ${@}))))
+
+(rule (
+  (targets (stdlib.js))
+  (action (progn
+    (run ${bin:og-stdlib})
+  ))
+))
+
+(alias (
+  (name install)
+  (package ocaml-gist)
+  (deps (index.html codemirror.css codemirror.js ocaml.js ocaml_gist.bc.js ocaml_webworker.js stdlib.js))
+))
+
+(alias (
+  (name runtest)
+  (package ocaml-gist)
+  (deps ((alias install)))
+  (action (system "python -m SimpleHTTPServer"))
+))

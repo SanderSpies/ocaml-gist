@@ -14,7 +14,7 @@ depends: [
   "jbuilder" {build & >= "1.0+beta10"}
   "findlib"
   "js_of_ocaml" { >= "3.0.0" }
-  "js_of_ocaml-compiler" { > "3.0.0" }
+  "js_of_ocaml-compiler" { >= "3.0.0" }
   "js_of_ocaml-toplevel"
   "yojson"
   "str"

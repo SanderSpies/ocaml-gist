@@ -1,8 +1,37 @@
 Worker.import_scripts ["stdlib.js"; ];;
 
+let err s = (
+  Firebug.console##error (Js.string s)
+)
+
 let (latest_typed_structure:Typedtree.structure option ref) = ref None;;
 let (latest_typed_signature:Types.signature_item list option ref) = ref None;;
 let (latest_env:Env.t option ref) = ref None;;
+
+(* taken from ocaml/syntaxerr.ml *)
+let prepare_error = function
+  | Syntaxerr.Unclosed(opening_loc, opening, closing_loc, closing) ->
+      Format.sprintf
+        "Syntax error: '%s' expected" closing
+
+  | Syntaxerr.Expecting (loc, nonterm) ->
+      "Syntax error: " ^ nonterm ^ " expected."
+  | Syntaxerr.Not_expecting (loc, nonterm) ->
+      "Syntax error: " ^ nonterm ^ " not expected."
+  | Syntaxerr.Applicative_path loc ->
+        "Syntax error: applicative paths of the form F(X).t \
+         are not supported when the option -no-app-func is set."
+  | Syntaxerr.Variable_in_scope (loc, var) ->
+      Format.sprintf
+        "In this scoped type, variable '%s \
+         is reserved for the local type %s."
+         var var
+  | Syntaxerr.Other loc ->
+      "Syntax error"
+  | Syntaxerr.Ill_formed_ast (loc, s) ->
+      "broken invariant in parsetree:" ^ s
+  | Syntaxerr.Invalid_package_type (loc, s) ->
+      "invalid package type: " ^ s
 
 let type_code code = (
   let lexbuf = Lexing.from_string code in
@@ -13,7 +42,7 @@ let type_code code = (
     Env.reset_cache ();
     let all_cmis = Array.to_list (Sys.readdir "/cmis/") in
     List.iter (fun cmi -> (
-      let cmi_name = String.capitalize (Filename.remove_extension cmi) in
+      let cmi_name = String.capitalize_ascii (Filename.remove_extension cmi) in
       try
         let _ = Env.lookup_module ~load:true (Lident cmi_name) env in
         ()
@@ -26,35 +55,48 @@ let type_code code = (
     latest_env := Some env;
     None
   with
+    | Lexer.Error (err, loc) -> (
+        let buffer = Buffer.create 100 in
+        let formatter = Format.formatter_of_buffer buffer in
+        Lexer.report_error formatter err;
+        Format.pp_print_flush formatter ();
+        let msg = Buffer.to_bytes buffer in
+        Some ("LexerError", "", [loc], msg)
+      )
     | Syntaxerr.Error err -> (
+        let msg = prepare_error err in
         match err with
-        | Unclosed (loc, s, loc2, s2) -> Some ("SyntaxError", "Unclosed", [loc; loc2], s)
-        | Expecting (loc, s) ->  Some ("SyntaxError", "Expecting", [loc], s)
-        | Not_expecting (loc, s) -> Some ("SyntaxError", "Not_expecting", [loc], s)
-        | Applicative_path loc -> Some ("SyntaxError", "Applicative_path", [loc], "")
-        | Variable_in_scope (loc, s) -> Some ("SyntaxError", "Variable_in_scope", [loc], s)
-        | Other loc -> Some ("SyntaxError", "Other", [loc], "")
-        | Ill_formed_ast (loc, s) -> Some ("SyntaxError", "Ill_formed_ast", [loc], s)
-        | Invalid_package_type (loc, s) -> Some ("SyntaxError", "Invalid_package_type", [loc], s)
+        | Unclosed (loc, s, loc2, s2) -> Some ("SyntaxError", "Unclosed", [loc; loc2], msg)
+        | Expecting (loc, s) ->  Some ("SyntaxError", "Expecting", [loc], msg)
+        | Not_expecting (loc, s) -> Some ("SyntaxError", "Not_expecting", [loc], msg)
+        | Applicative_path loc -> Some ("SyntaxError", "Applicative_path", [loc], msg)
+        | Variable_in_scope (loc, s) -> Some ("SyntaxError", "Variable_in_scope", [loc], msg)
+        | Other loc -> Some ("SyntaxError", "Other", [loc], msg)
+        | Ill_formed_ast (loc, s) -> Some ("SyntaxError", "Ill_formed_ast", [loc], msg)
+        | Invalid_package_type (loc, s) -> Some ("SyntaxError", "Invalid_package_type", [loc], msg)
       )
     | Typetexp.Error (loc, env, err) -> (
         let buffer = Buffer.create 100 in
         let formatter = Format.formatter_of_buffer buffer in
-        let error = Typetexp.report_error env formatter err in
+        Typetexp.report_error env formatter err;
+        Format.pp_print_flush formatter ();
         let msg = Buffer.to_bytes buffer in
         Some ("TypetexpError", "", [loc], msg)
       )
     | Typemod.Error (loc, env, err) -> (
         let buffer = Buffer.create 100 in
         let formatter = Format.formatter_of_buffer buffer in
-        let error = Typemod.report_error env formatter err in
+        Typemod.report_error env formatter err;
+        Format.pp_print_flush formatter ();
         let msg = Buffer.to_bytes buffer in
+
         Some ("TypemodError", "", [loc], msg)
       )
     | Typecore.Error (loc, env, err) -> (
         let buffer = Buffer.create 100 in
         let formatter = Format.formatter_of_buffer buffer in
-        let error = Typecore.report_error env formatter err in
+        Typecore.report_error env formatter err;
+        Format.pp_print_flush formatter ();
         let msg = Buffer.to_bytes buffer in
         Some ("TypecoreError", "", [loc], msg)
       )
@@ -133,7 +175,10 @@ Env.Persistent_signature.load := (fun ~unit_name ->
 );;
 
 Worker.set_onmessage (fun code ->
-  let msgType = Js.to_string code##.msgType in
+  (Js.Opt.case code##.msgType)
+    (fun () -> err "[OCaml-gist] The message body is expected to have a msgType field. ")
+    (fun msgType ->
+  let msgType = Js.to_string msgType in
   match msgType with
   | "type" -> (
     let err = type_code (Js.to_string code##.code) in
@@ -343,5 +388,6 @@ Worker.set_onmessage (fun code ->
   | "occurrences" -> (
       failwith "not implemented yet"
     )
-  | _ -> ()
+  | _ as msgType2 -> print_endline ("[OCaml-gist] Unknown msgType: " ^ msgType2)
+  )
 );;

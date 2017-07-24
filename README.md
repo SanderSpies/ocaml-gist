@@ -6,7 +6,7 @@ Warning
 ---
 Work in progress. I'm trying to get it a shape where it's usable by others.
 
-The following text is incorrect for now.
+The following text is incorrect for now. 
 
 Creating a standard library
 ---
@@ -47,6 +47,10 @@ To create a gist for a set of example files run `og-generate`.
 
 By default it will take all the `.ml` files in the current folder and
 create an online example experience.
+
+Demo
+---
+https://sanderspies.github.io/ocaml-gist/index.html
 
 License
 ===

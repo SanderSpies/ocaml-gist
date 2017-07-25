@@ -6,7 +6,7 @@ Warning
 ---
 Work in progress. I'm trying to get it a shape where it's usable by others.
 
-The following text is incorrect for now. 
+The following text is incorrect for now.   
 
 Creating a standard library
 ---

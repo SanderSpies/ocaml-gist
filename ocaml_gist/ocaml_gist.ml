@@ -39,7 +39,7 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) worker = (
   let console = Js.Unsafe.meth_call code_mirror "fromTextArea" [|
     (Js.Unsafe.inject consoleTextArea);
     (Js.Unsafe.obj [|
-      ("mode", Js.Unsafe.js_expr "'ocaml'");
+      ("mode", Js.Unsafe.js_expr "''");
       ("readOnly", Js.Unsafe.js_expr "true")
     |])
     |]
@@ -48,13 +48,38 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) worker = (
   editor##on (Js.string "change") (Js.Unsafe.inject (Js.Unsafe.callback
       (debounce (fun _ -> (
         worker##postMessage (Js.Unsafe.obj [|
-          ("id", Js.Unsafe.inject id);
+          ("msgId", Js.Unsafe.inject id);
           ("code", Js.Unsafe.inject editor##getValue);
           ("msgType", Js.Unsafe.inject (Js.string "type"));
         |])
       )) 500.)
   ));
   (id, console, editor)
+)
+
+
+let highlight_location editor loc = (
+  let _file1 = loc##.locStart##.posFname in
+  let line1 = loc##.locStart##.posLnum in
+  let col1 = loc##.locStart##.posCnum - loc##.locStart##.posBol in
+  let _file2 = loc##.locEnd##.posFname in
+  let line2 = loc##.locEnd##.posLnum in
+  let col2 = loc##.locEnd##.posCnum - loc##.locEnd##.posBol in
+  let from = Js.Unsafe.(obj
+    [|"line", Js.Unsafe.inject (line1 - 1);
+      "ch", Js.Unsafe.inject col1 |]) in
+  let to_ = Js.Unsafe.(obj
+    [|"line", Js.Unsafe.inject (line2 - 1);
+      "ch", Js.Unsafe.inject col2 |]) in
+  let options = Js.Unsafe.(obj
+    [|"className", Js.Unsafe.inject "ocaml-gist-highlight"|]) in
+  editor##.doc##markText from to_ options;
+)
+
+
+
+let remove_marks editor = (
+  editor##.doc##getAllMarks##forEach(fun mark -> mark##clear)
 )
 
 
@@ -71,9 +96,39 @@ let () = (
   ) textareas
   in
   worker##.onmessage := Dom.handler (fun msg -> (
-    Firebug.console##info (Js.Unsafe.inject msg##.data);
-    Js.bool false
+    let data = msg##.data in
+    let msgType:string = Js.to_string data##.msgType in
+    let msgId:int = data##.msgId in
+    let maybeEditor = List.nth editors msgId in
+    match maybeEditor with
+    | Some (id, console, editor) -> (
+      remove_marks editor;
+      let _ = match msgType with
+      | "Output" -> (
+          let msg = Js.string data##.message in
+          console##setValue msg;
+        )
+      | "TypetexpError"
+      | "TypemodError"
+      | "TypecoreError"
+      | "LexerError"
+      | "SyntaxError" -> (
+        let locations = data##.locations in
+        let msg = Js.string data##.message in
+        console##setValue msg;
+        Array.iter (highlight_location editor) locations;
+        )
+
+      | "NoSyntaxErrors" -> console##setValue (Js.string "");
+      | _ as msgType -> failwith ("This should not happen: " ^ msgType)
+      in
+      Firebug.console##info (Js.Unsafe.inject msg##.data);
+      Js.bool false
+    )
+    | None -> (
+      (* should not happen at all... *)
+      Js.bool false
+      )
   ));
   Js.Unsafe.global##.shared := worker;
-  Firebug.console##log (Js.Unsafe.inject Js.Unsafe.global##.shared)
 )

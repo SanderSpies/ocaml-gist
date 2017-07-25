@@ -257,7 +257,7 @@
   (targets (ocaml_webworker.js))
   (deps (ocaml_webworker.cma))
   (action (progn
-    (system "jsoo_mktop -package str -package unix -jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js  ocaml_webworker.cma -o ocaml_webworker.js")
+    (system "${bin:jsoo_mktop} -package str -package unix -jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js  ocaml_webworker.cma -o ocaml_webworker.js")
   ))
 ))
 

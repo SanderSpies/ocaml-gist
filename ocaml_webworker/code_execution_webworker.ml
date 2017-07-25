@@ -35,6 +35,8 @@ let prepare_error = function
 
 let type_code code = (
   let lexbuf = Lexing.from_string code in
+  let stderr_buffer = Buffer.create 100 in
+  Sys_js.set_channel_flusher stderr (Buffer.add_string stderr_buffer);
   (try
     let structure = Parse.implementation lexbuf in
     JsooTop.initialize ();
@@ -53,7 +55,12 @@ let type_code code = (
     latest_typed_structure := Some typed_structure;
     latest_typed_signature := Some typed_signature;
     latest_env := Some env;
-    None
+    let error = Buffer.to_bytes stderr_buffer in
+    if error <> "" then (
+      Some ("Output", "", [], error)
+    )
+    else
+      None
   with
     | Lexer.Error (err, loc) -> (
         let buffer = Buffer.create 100 in
@@ -186,19 +193,19 @@ Worker.set_onmessage (fun code ->
     | Some (m1, m2, locs, s) ->
       let result = Array.of_list (List.map (fun {Location.loc_start; loc_end} ->
         Js.Unsafe.obj [|
-          ("loc_start",
+          ("locStart",
         Js.Unsafe.obj [|
-          ("pos_fname", Js.Unsafe.inject (Js.string loc_start.pos_fname));
-          ("pos_lnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_lnum)));
-          ("pos_bol", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_bol)));
-          ("pos_cnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_cnum)));
+          ("posFname", Js.Unsafe.inject (Js.string loc_start.pos_fname));
+          ("posLnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_lnum)));
+          ("posBol", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_bol)));
+          ("posCnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_cnum)));
         |]);
-        ("loc_end",
+        ("locEnd",
         Js.Unsafe.obj [|
-          ("pos_fname", Js.Unsafe.inject (Js.string loc_end.pos_fname));
-          ("pos_lnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_lnum)));
-          ("pos_bol", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_bol)));
-          ("pos_cnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_cnum)));
+          ("posFname", Js.Unsafe.inject (Js.string loc_end.pos_fname));
+          ("posLnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_lnum)));
+          ("posBol", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_bol)));
+          ("posCnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_cnum)));
         |])
         |]
         )
@@ -206,18 +213,22 @@ Worker.set_onmessage (fun code ->
       in
       Worker.post_message (Js.Unsafe.obj [|
         ("msgId", code##.msgId);
-        ("type", Js.Unsafe.inject (Js.string m1));
+        ("msgType", Js.Unsafe.inject (Js.string m1));
         ("subtype", Js.Unsafe.inject (Js.string m2));
-        ("locations", Js.Unsafe.inject (Js.array result));
+        ("locations", Js.Unsafe.inject result);
         ("message", Js.Unsafe.inject (Js.string (String.trim s)));
       |])
-    | None -> ()
+    | None ->
+      Worker.post_message (Js.Unsafe.obj [|
+        ("msgId", code##.msgId);
+        ("msgType", Js.Unsafe.inject (Js.string "NoSyntaxErrors"));
+        |])
     )
   | "execute" -> (
       let (result, _) = execute_code (Js.to_string code##.code) in
       Worker.post_message (Js.Unsafe.obj [|
         ("msgId", code##.msgId);
-        ("type", Js.Unsafe.inject (Js.string "execute"));
+        ("msgType", Js.Unsafe.inject (Js.string "execute"));
         ("result", Js.Unsafe.inject (Js.string result));
       |])
     )
@@ -276,13 +287,13 @@ Worker.set_onmessage (fun code ->
         in
         Worker.post_message (Js.Unsafe.obj [|
           ("msgId", code##.msgId);
-          ("type", Js.Unsafe.inject (Js.string "autocomplete"));
+          ("msgType", Js.Unsafe.inject (Js.string "autocomplete"));
           ("suggestions", Js.Unsafe.inject (Js.array suggestions));
         |])
       | None ->
         Worker.post_message (Js.Unsafe.obj [|
             ("msgId", code##.msgId);
-            ("type", Js.Unsafe.inject (Js.string "autocomplete"));
+            ("msgType", Js.Unsafe.inject (Js.string "autocomplete"));
             ("suggestions", Js.Unsafe.inject (Js.array [||]));
           |])
     )
@@ -301,7 +312,7 @@ Worker.set_onmessage (fun code ->
       match result with
       | Some s -> Worker.post_message (Js.Unsafe.obj [|
           ("msgId", code##.msgId);
-          ("type", Js.Unsafe.inject (Js.string "documentation"));
+          ("msgType", Js.Unsafe.inject (Js.string "documentation"));
           ("documentation", Js.Unsafe.inject (Js.string s));
         |])
       | None -> ()
@@ -314,7 +325,7 @@ Worker.set_onmessage (fun code ->
         let result = Std.Json.to_string (`List json) in
         Worker.post_message (Js.Unsafe.obj [|
             ("msgId", code##.msgId);
-            ("type", Js.Unsafe.inject (Js.string "outline"));
+            ("msgType", Js.Unsafe.inject (Js.string "outline"));
             ("outline", Json.unsafe_input (Js.string result));
           |])
 
@@ -337,7 +348,7 @@ Worker.set_onmessage (fun code ->
         let result = Std.Json.to_string (`List (List.map Query_json.json_of_shape shapes)) in
         Worker.post_message (Js.Unsafe.obj [|
             ("msgId", code##.msgId);
-            ("type", Js.Unsafe.inject (Js.string "shape"));
+            ("msgType", Js.Unsafe.inject (Js.string "shape"));
             ("shape", Json.unsafe_input (Js.string result));
           |])
       | _ -> ()
@@ -379,7 +390,7 @@ Worker.set_onmessage (fun code ->
           let result = Std.Json.to_string result in
           Worker.post_message (Js.Unsafe.obj [|
               ("msgId", code##.msgId);
-              ("type", Js.Unsafe.inject (Js.string "locate"));
+              ("msgType", Js.Unsafe.inject (Js.string "locate"));
               ("locate", Json.unsafe_input (Js.string result));
             |])
         | _ -> ()

@@ -1,7 +1,10 @@
 (executable (
   (name ocaml_gist)
   (modules (ocaml_gist))
-  (libraries (js_of_ocaml))
+  (libraries (js_of_ocaml js_of_ocaml-compiler))
+  (js_of_ocaml (
+    (flags (+weak.js +toplevel.js --opt 3))
+  ))
   (preprocess (pps (js_of_ocaml-ppx)))
 ))
 

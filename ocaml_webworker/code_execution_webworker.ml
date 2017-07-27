@@ -150,9 +150,9 @@ let execute_code code = (
   JsooTop.initialize ();
   let answer_buffer = Buffer.create 100 in
   JsooTop.execute true ~highlight_location (Format.formatter_of_buffer answer_buffer)  (code ^ ";;");
-  let error = Buffer.to_bytes stderr_buffer in
-  let output = Buffer.to_bytes stdout_buffer in
-  let answer = Buffer.to_bytes answer_buffer in
+  let error = String.trim (Buffer.to_bytes stderr_buffer) in
+  let output = String.trim (Buffer.to_bytes stdout_buffer) in
+  let answer = String.trim (Buffer.to_bytes answer_buffer) in
   if String.length error > 0 then
     (error, markLocations)
   else if String.length output > 0 then

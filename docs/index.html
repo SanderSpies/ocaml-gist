@@ -81,8 +81,11 @@
       }
 
       .CodeMirror {
+        font-size: 12px;
+      }
+
+      .CodeMirror.iOS {
         font-size: 16px;
-        transform: scale (.75);
       }
 
       .CodeMirror pre {
@@ -90,16 +93,8 @@
     </style>
 
   </head>
-  <body onresize="function() {console.log "yay"}">
-    <div style="    background-color: orange;
-    position: fixed;
-    bottom: 0;
-    height: 50px;
-    z-index: 16;
-    width: 100%;">
-      Mobile toolbar test
-    </div>
-    <textarea data-ocaml autocomplete=off>
+  <body>
+    <textarea data-ocaml>
 [@@@part "1"];;
 type shape = < area : float >;;
 

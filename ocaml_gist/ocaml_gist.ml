@@ -57,7 +57,6 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) worker = (
       ("mode", Js.Unsafe.js_expr "'ocaml'");
       ("lineNumbers", Js.Unsafe.js_expr "false");
       ("matchBrackets", Js.Unsafe.js_expr "true");
-      ("inputStyle", Js.Unsafe.js_expr "'textarea'");
     |])
   |] in
   let doc = Dom_html.document in

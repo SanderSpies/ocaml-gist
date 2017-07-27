@@ -1,43 +1,105 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="codemirror.css" rel="stylesheet" />
     <style>
-      .CodeMirror.console {
-        background-color: #21252b;
-        border-top: solid 10px black;
-        border-radius: 0;
-        border-bottom-left-radius: 4px;
-        border-bottom-right-radius: 4px;
-        margin: 0 10px 10px 10px;
-        padding: 0 40px;
-      }
-
-      .console pre {
+      body {
         margin: 0;
       }
 
-      .ocaml-gist-highlight {
+      .og-toolbar {
+        position: absolute;
+      }
+
+      .og-execute-icon {
+        width: 25px;
+        height: 25px;
+        background: url(execute.svg);
+        background-size: 100%;
+        position: relative;
+        display: none;
+        top: 12px;
+        left: 3px;
+        z-index: 1;
+        cursor: pointer;
+      }
+
+      .og-show-execute .og-execute-icon {
+        display: inline-block;
+      }
+
+      .og-error-icon {
+        width: 25px;
+        height: 25px;
+        background: url(error.svg);
+        background-size: 100%;
+        position: relative;
+        display: none;
+        top: 12px;
+        left: 3px;
+        z-index: 1;
+        cursor: pointer;
+      }
+
+      .og-show-error .og-error-icon {
+        display: inline-block;
+      }
+
+      .CodeMirror.og-editor {
+        margin: 0;
+        margin-top: 10px;
+        overflow: hidden;
+      }
+
+
+      .CodeMirror.og-console {
+        background-color: #21252b;
+        border-top: solid 10px black;
+        margin: 0 0px 10px 0px;
+        padding: 0 40px;
+      }
+
+      @media (min-width: 768px) {
+        .CodeMirror.og-editor {
+          margin: 0 10px;
+          margin-top: 10px;
+        }
+
+        .CodeMirror.og-console {
+          margin: 0 10px 10px 10px;
+        }
+      }
+
+      .og-console pre {
+        margin: 0;
+      }
+
+      .og-highlight {
         color: orangered !important;
         text-decoration: underline;
       }
+
+      .CodeMirror {
+        font-size: 16px;
+      }
     </style>
-    <link href="codemirror.css" rel="stylesheet" />
+
   </head>
-  <body>
+  <body onresize="function() {console.log "yay"}">
+    <div style="    background-color: orange;
+    position: fixed;
+    bottom: 0;
+    height: 50px;
+    z-index: 16;
+    width: 100%;">
+      Mobile toolbar test
+    </div>
     <textarea data-ocaml>
 [@@@part "1"];;
 type shape = < area : float >;;
 
 type square = < area : float; width : int >;;
     </textarea>
-<!-- <div class="console">
-  <pre>
-  val numeric_deriv :
-    delta:float ->
-    x:float -> y:float -> f:(x:float -> y:float -> float) -> float * float =
-    &lt;fun&gt;
-  </pre>
-</div> -->
     <textarea data-ocaml>
 let numeric_deriv ~delta ~x ~y ~(f: x:float -> y:float -> float) =
   let x' = x +. delta in

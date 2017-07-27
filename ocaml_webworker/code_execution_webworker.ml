@@ -135,7 +135,6 @@ let documentation pos str = (
     | _ -> None )
   | _ -> None )
 
-
 let execute_code code = (
   let markLocations = ref [] in
   let highlight_location loc = (

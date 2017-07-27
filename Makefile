@@ -23,6 +23,8 @@ doc: build
 	cp _build/default/ocaml_gist/ocaml_gist.bc.js docs/ocaml_gist.bc.js
 	cp _build/default/ocaml_gist/codemirror.js docs/codemirror.js
 	cp _build/default/ocaml_gist/codemirror.css docs/codemirror.css
+	cp _build/default/ocaml_gist/error.svg docs/error.svg
+	cp _build/default/ocaml_gist/execute.svg docs/execute.svg
 	cp _build/default/ocaml_gist/ocaml.js docs/ocaml.js
 
 run:

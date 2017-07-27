@@ -21,6 +21,34 @@ let debounce func timeout_ms = (
   )
 )
 
+
+let show_error_icon editor = (
+  let ta = editor##getTextArea () in
+  let toolbar = ta##.nextElementSibling##.nextElementSibling
+  |> Dom_html.CoerceTo.div
+  |> Js.Opt.to_option in
+  match toolbar with
+  | Some div -> (
+      ignore(div##.classList##add (Js.string "og-show-error"));
+      ignore(div##.classList##remove (Js.string "og-show-execute"));
+    )
+  | None -> ()
+)
+
+let show_execute_icon editor = (
+  let ta = editor##getTextArea () in
+  let toolbar = ta##.nextElementSibling##.nextElementSibling
+  |> Dom_html.CoerceTo.div
+  |> Js.Opt.to_option in
+  match toolbar with
+  | Some div -> (
+      ignore(div##.classList##remove (Js.string "og-show-error"));
+      ignore(div##.classList##add (Js.string "og-show-execute"));
+    )
+  | None -> ()
+)
+
+
 let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) worker = (
   let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
   let editor = Js.Unsafe.meth_call code_mirror "fromTextArea" [|
@@ -35,6 +63,25 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) worker = (
   let consoleTextArea = Dom_html.createTextarea doc in
   let ta = editor##getTextArea () in
   let nextPart = ta##.nextElementSibling##.nextElementSibling in
+  let toolbar = Dom_html.createDiv doc in
+  let error_icon = Dom_html.createDiv doc in
+  error_icon##.classList##add (Js.string "og-error-icon");
+  let execute_icon = Dom_html.createDiv doc in
+  execute_icon##.onclick := Dom_html.handler (fun _ ->
+    worker##postMessage (Js.Unsafe.obj [|
+      ("msgId", Js.Unsafe.inject id);
+      ("code", Js.Unsafe.inject editor##getValue);
+      ("msgType", Js.Unsafe.inject (Js.string "execute"));
+    |]);
+    Js._true
+  );
+  execute_icon##.classList##add (Js.string "og-execute-icon");
+  Dom.appendChild toolbar error_icon;
+  Dom.appendChild toolbar execute_icon;
+  toolbar##.classList##add (Js.string "og-toolbar");
+  toolbar##.classList##add (Js.string "og-show-execute");
+
+  ignore(ta##.parentNode##insertBefore toolbar nextPart);
   ignore(ta##.parentNode##insertBefore consoleTextArea nextPart);
   let console = Js.Unsafe.meth_call code_mirror "fromTextArea" [|
     (Js.Unsafe.inject consoleTextArea);
@@ -44,14 +91,15 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) worker = (
     |])
     |]
   in
-  ignore(console##getTextArea##.nextElementSibling##.classList##add (Js.string "console"));
+  ignore(editor##getTextArea##.nextElementSibling##.classList##add (Js.string "og-editor"));
+  ignore(console##getTextArea##.nextElementSibling##.classList##add (Js.string "og-console"));
   editor##on (Js.string "change") (Js.Unsafe.inject (Js.Unsafe.callback
       (debounce (fun _ -> (
         worker##postMessage (Js.Unsafe.obj [|
           ("msgId", Js.Unsafe.inject id);
           ("code", Js.Unsafe.inject editor##getValue);
           ("msgType", Js.Unsafe.inject (Js.string "type"));
-        |])
+        |]);
       )) 500.)
   ));
   (id, console, editor)
@@ -72,7 +120,7 @@ let highlight_location editor loc = (
     [|"line", Js.Unsafe.inject (line2 - 1);
       "ch", Js.Unsafe.inject col2 |]) in
   let options = Js.Unsafe.(obj
-    [|"className", Js.Unsafe.inject "ocaml-gist-highlight"|]) in
+    [|"className", Js.Unsafe.inject "og-highlight"|]) in
   editor##.doc##markText from to_ options;
 )
 
@@ -107,6 +155,7 @@ let () = (
       | "Output" -> (
           let msg = Js.string data##.message in
           console##setValue msg;
+          show_error_icon editor;
         )
       | "TypetexpError"
       | "TypemodError"
@@ -115,11 +164,18 @@ let () = (
       | "SyntaxError" -> (
         let locations = data##.locations in
         let msg = Js.string data##.message in
+        show_error_icon editor;
         console##setValue msg;
         Array.iter (highlight_location editor) locations;
         )
 
-      | "NoSyntaxErrors" -> console##setValue (Js.string "");
+      | "NoSyntaxErrors" -> (
+        show_execute_icon editor;
+        console##setValue (Js.string "");
+      )
+      | "execute" -> (
+        console##setValue data##.result;
+        )
       | _ as msgType -> failwith ("This should not happen: " ^ msgType)
       in
       Firebug.console##info (Js.Unsafe.inject msg##.data);

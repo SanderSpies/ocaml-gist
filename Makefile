@@ -26,6 +26,7 @@ doc: build
 	cp _build/default/ocaml_gist/error.svg docs/error.svg
 	cp _build/default/ocaml_gist/execute.svg docs/execute.svg
 	cp _build/default/ocaml_gist/ocaml.js docs/ocaml.js
+	cp _build/default/ocaml_gist/show-hint.js docs/show-hint.js
 
 run:
 	jbuilder build @run

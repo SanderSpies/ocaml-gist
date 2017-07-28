@@ -35,6 +35,31 @@ let show_error_icon editor = (
   | None -> ()
 )
 
+let showHint worker editor options = (
+  let cur = editor##getCursor in
+  let token = editor##getTokenAt cur in
+  let msgId = int_of_string (Js.to_string (editor##getTextArea##getAttribute (Js.string "position"))) in
+  let hint = Js.to_string token##.string in
+  print_endline hint;
+  worker##postMessage (Js.Unsafe.obj [|
+    ("msgId", Js.Unsafe.inject msgId);
+    ("text", Js.Unsafe.inject token##.string);
+    ("posFname", Js.Unsafe.inject (Js.string ""));
+    ("posLnum", Js.Unsafe.inject 1);
+    ("posBol", Js.Unsafe.inject 1);
+    ("posCnum", Js.Unsafe.inject 1);
+    ("msgType", Js.Unsafe.inject (Js.string "complete_prefix"));
+  |]);
+
+    (* var token = editor.getTokenAt(cur);
+    var Pos = CodeMirror.Pos;
+    return {list: ["do", "the", "camel", "dance"],
+            from: Pos(cur.line, token.start),
+            to: Pos(cur.line, token.end)}; *)
+  (* }; *)
+
+)
+
 let show_execute_icon editor = (
   let ta = editor##getTextArea () in
   let toolbar = ta##.nextElementSibling##.nextElementSibling
@@ -57,6 +82,9 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) worker = (
       ("mode", Js.Unsafe.js_expr "'ocaml'");
       ("lineNumbers", Js.Unsafe.js_expr "false");
       ("matchBrackets", Js.Unsafe.js_expr "true");
+      ("extraKeys", (Js.Unsafe.obj [|
+        ("Ctrl-Space", Js.Unsafe.js_expr "'autocomplete'");
+      |]));
     |])
   |] in
   let doc = Dom_html.document in
@@ -87,7 +115,8 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) worker = (
     (Js.Unsafe.inject consoleTextArea);
     (Js.Unsafe.obj [|
       ("mode", Js.Unsafe.js_expr "''");
-      ("readOnly", Js.Unsafe.js_expr "true")
+      ("readOnly", Js.Unsafe.js_expr "true");
+      ("lineWrapping", Js.Unsafe.js_expr "true");
     |])
     |]
   in
@@ -139,7 +168,7 @@ let () = (
   let editors = List.map (fun textarea ->
     let textarea = Js.Opt.to_option (Dom_html.CoerceTo.textarea textarea) in
     match textarea with
-    | Some textarea -> ( i := !i + 1; Some (to_code_mirror !i textarea worker))
+    | Some textarea -> ( i := !i + 1; textarea##setAttribute (Js.string "position") (Js.string (string_of_int !i)); Some (to_code_mirror !i textarea worker))
     | None -> None
   ) textareas
   in
@@ -176,6 +205,9 @@ let () = (
       | "execute" -> (
         console##setValue data##.result;
         )
+      | "complete_prefix" -> (
+        print_endline "complete the prefix here..."
+        )
       | _ as msgType -> failwith ("This should not happen: " ^ msgType)
       in
       Firebug.console##info (Js.Unsafe.inject msg##.data);
@@ -186,5 +218,11 @@ let () = (
       Js.bool false
       )
   ));
+  let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
+  ignore(Js.Unsafe.meth_call code_mirror "registerHelper" [|
+    Js.Unsafe.inject (Js.string "hint");
+    Js.Unsafe.inject (Js.string "ocaml");
+    Js.Unsafe.inject (showHint worker)
+  |]);
   Js.Unsafe.global##.shared := worker;
 )

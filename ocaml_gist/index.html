@@ -92,6 +92,38 @@
 
       .CodeMirror pre {
       }
+
+      .CodeMirror-hints {
+        font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+        position: absolute;
+        color: #abb2bf;
+        z-index: 10;
+        overflow: hidden;
+        list-style: none;
+        font-size: 12px;
+        margin: 0;
+
+        overflow-y:auto auto;
+
+        background-color: #282c34;
+        box-shadow: 0 2px 8px 1px rgba(0, 0, 0, 0.3);
+        padding: 0;
+        border-radius: 3px;
+      }
+
+      .CodeMirror-hint {
+        margin: 0;
+        white-space: pre;
+        cursor: pointer;
+        padding: 10px;
+
+      }
+
+      li.CodeMirror-hint-active {
+        background: #3a3f4b;
+        color: white;
+      }
+
     </style>
 
   </head>
@@ -238,6 +270,8 @@ Extended_interval.contains (Extended_interval.create 3 10) 4;;
     <textarea data-ocaml>let a = 2;;</textarea>
   </body>
   <script src="codemirror.js"></script>
+  <script src="show-hint.js"></script>
+  <script src="javascript-hint.js"></script>
   <script src="ocaml.js"></script>
   <script src="ocaml_gist.bc.js"></script>
 </html>

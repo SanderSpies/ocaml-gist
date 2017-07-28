@@ -26,7 +26,17 @@
 (alias (
   (name install)
   (package ocaml-gist)
-  (deps (index.html codemirror.css codemirror.js ocaml.js ocaml_gist.bc.js ocaml_webworker.js stdlib.js error.svg execute.svg))
+  (deps ( index.html
+          codemirror.css
+          codemirror.js
+          ocaml.js
+          ocaml_gist.bc.js
+          ocaml_webworker.js
+          stdlib.js
+          error.svg
+          execute.svg
+          show-hint.js
+          javascript-hint.js))
 ))
 
 (alias (

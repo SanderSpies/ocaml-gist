@@ -286,13 +286,13 @@ Worker.set_onmessage (fun code ->
         in
         Worker.post_message (Js.Unsafe.obj [|
           ("msgId", code##.msgId);
-          ("msgType", Js.Unsafe.inject (Js.string "autocomplete"));
+          ("msgType", Js.Unsafe.inject (Js.string "complete_prefix"));
           ("suggestions", Js.Unsafe.inject (Js.array suggestions));
         |])
       | None ->
         Worker.post_message (Js.Unsafe.obj [|
             ("msgId", code##.msgId);
-            ("msgType", Js.Unsafe.inject (Js.string "autocomplete"));
+            ("msgType", Js.Unsafe.inject (Js.string "complete_prefix"));
             ("suggestions", Js.Unsafe.inject (Js.array [||]));
           |])
     )

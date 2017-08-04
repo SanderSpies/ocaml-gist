@@ -378,7 +378,10 @@
       var resolved = function(cm, callback, options) {
         var app = applicableHelpers(cm, helpers);
         function run(i) {
-          if (i == app.length) return callback(null)
+
+          if (i == app.length) {
+            return callback(null)
+          }
           fetchHints(app[i], cm, options, function(result) {
             if (result && result.list.length > 0) callback(result)
             else run(i + 1)

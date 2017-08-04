@@ -21,7 +21,6 @@ let debounce func timeout_ms = (
   )
 )
 
-
 let show_error_icon editor = (
   let ta = editor##getTextArea () in
   let toolbar = ta##.nextElementSibling##.nextElementSibling
@@ -35,29 +34,94 @@ let show_error_icon editor = (
   | None -> ()
 )
 
-let showHint worker editor options = (
+module Code_execution = struct
+
+  let promise_global = Js.Unsafe.global##._Promise
+
+  type response = <msgId: int Js.prop> Js.t
+
+  let worker:((Js.Unsafe.any, response) Worker.worker Js.t) = Worker.create "ocaml_webworker.js"
+
+  type 'a resolve = 'a -> unit
+
+  type 'a responses = (int, 'a resolve) Hashtbl.t
+
+  let awaiting_responses:('a responses) = Hashtbl.create 50
+
+  let unique_id = ref 0;;
+
+  let () = (
+    worker##.onmessage := Dom.handler (fun (msg : response Worker.messageEvent Js.t)  -> (
+      let data = msg##.data in
+      let msgId = data##.msgId in
+      let resolve_fn = Hashtbl.find awaiting_responses msgId in
+      Hashtbl.remove awaiting_responses msgId;
+      resolve_fn data;
+      Js.bool true;
+    ))
+  )
+
+  let post_message msg = (
+    unique_id := !unique_id + 1;
+    let msg = Array.append [|("msgId", Js.Unsafe.inject !unique_id )|] msg in
+    worker##postMessage (Js.Unsafe.obj msg);
+    Js.Unsafe.new_obj promise_global [|Js.Unsafe.inject (fun resolve _ ->
+      Hashtbl.add awaiting_responses !unique_id resolve
+    )|]
+  )
+
+end
+
+type response = <string: Js.js_string Js.t Js.prop; start: int Js.prop> Js.t
+
+type response_list = response list
+
+let rec get_token editor pos (result:response_list) = (
+  (* TODO: ensure autocomplete only takes proper variables *)
+  let token:response = editor##getTokenAt pos in
+  let str = String.trim (Js.to_string token##.string) in
+  match str with
+  | "" ->
+    if List.length result = 0 then
+      (-1, 5, "")
+    else
+      let str = String.concat "" (List.map (fun (token:response) -> Js.to_string token##.string) result) in
+      let foo = List.nth (List.rev result) 0 in
+      let x = Js.to_string foo##.string in
+      if x.[0] = '.' then
+        (foo##.start + 1, Js.Unsafe.get foo "end", str)
+      else
+        (foo##.start, Js.Unsafe.get foo "end", str)
+  | _ ->
+    get_token editor (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject pos##.line; Js.Unsafe.inject token##.start |] ) ([token] @ result)
+)
+
+let showHint editor = (
   let cur = editor##getCursor in
-  let token = editor##getTokenAt cur in
+  let (start, _end, hint) = get_token editor cur [] in
   let msgId = int_of_string (Js.to_string (editor##getTextArea##getAttribute (Js.string "position"))) in
-  let hint = Js.to_string token##.string in
-  print_endline hint;
-  worker##postMessage (Js.Unsafe.obj [|
-    ("msgId", Js.Unsafe.inject msgId);
-    ("text", Js.Unsafe.inject token##.string);
-    ("posFname", Js.Unsafe.inject (Js.string ""));
-    ("posLnum", Js.Unsafe.inject 1);
-    ("posBol", Js.Unsafe.inject 1);
-    ("posCnum", Js.Unsafe.inject 1);
-    ("msgType", Js.Unsafe.inject (Js.string "complete_prefix"));
-  |]);
-
-    (* var token = editor.getTokenAt(cur);
-    var Pos = CodeMirror.Pos;
-    return {list: ["do", "the", "camel", "dance"],
-            from: Pos(cur.line, token.start),
-            to: Pos(cur.line, token.end)}; *)
-  (* }; *)
-
+  if hint <> "" then
+    let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
+    let promise = Code_execution.post_message [|
+      ("text", Js.Unsafe.inject (Js.string hint));
+      ("posFname", Js.Unsafe.inject (Js.string ""));
+      ("posLnum", Js.Unsafe.inject cur##.line);
+      ("posBol", Js.Unsafe.inject 0);
+      ("posCnum", Js.Unsafe.inject start);
+      ("msgType", Js.Unsafe.inject (Js.string "complete_prefix"));
+    |]
+    in
+    promise##_then (fun data -> (
+      let suggestions = data##.suggestions##map (fun suggestion ->
+        suggestion##.name
+      ) in
+      Js.Unsafe.obj [|
+        ("list", suggestions);
+        ("from", (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject cur##.line; Js.Unsafe.inject start|] ));
+        ("to", (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject cur##.line; Js.Unsafe.inject _end|] ));
+      |]
+    ));
+  else  ()
 )
 
 let show_execute_icon editor = (
@@ -72,68 +136,6 @@ let show_execute_icon editor = (
     )
   | None -> ()
 )
-
-
-let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) worker = (
-  let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
-  let editor = Js.Unsafe.meth_call code_mirror "fromTextArea" [|
-    (Js.Unsafe.inject textarea);
-    (Js.Unsafe.obj [|
-      ("mode", Js.Unsafe.js_expr "'ocaml'");
-      ("lineNumbers", Js.Unsafe.js_expr "false");
-      ("matchBrackets", Js.Unsafe.js_expr "true");
-      ("extraKeys", (Js.Unsafe.obj [|
-        ("Ctrl-Space", Js.Unsafe.js_expr "'autocomplete'");
-      |]));
-    |])
-  |] in
-  let doc = Dom_html.document in
-  let consoleTextArea = Dom_html.createTextarea doc in
-  let ta = editor##getTextArea () in
-  let nextPart = ta##.nextElementSibling##.nextElementSibling in
-  let toolbar = Dom_html.createDiv doc in
-  let error_icon = Dom_html.createDiv doc in
-  error_icon##.classList##add (Js.string "og-error-icon");
-  let execute_icon = Dom_html.createDiv doc in
-  execute_icon##.onclick := Dom_html.handler (fun _ ->
-    worker##postMessage (Js.Unsafe.obj [|
-      ("msgId", Js.Unsafe.inject id);
-      ("code", Js.Unsafe.inject editor##getValue);
-      ("msgType", Js.Unsafe.inject (Js.string "execute"));
-    |]);
-    Js._true
-  );
-  execute_icon##.classList##add (Js.string "og-execute-icon");
-  Dom.appendChild toolbar error_icon;
-  Dom.appendChild toolbar execute_icon;
-  toolbar##.classList##add (Js.string "og-toolbar");
-  toolbar##.classList##add (Js.string "og-show-execute");
-
-  ignore(ta##.parentNode##insertBefore toolbar nextPart);
-  ignore(ta##.parentNode##insertBefore consoleTextArea nextPart);
-  let console = Js.Unsafe.meth_call code_mirror "fromTextArea" [|
-    (Js.Unsafe.inject consoleTextArea);
-    (Js.Unsafe.obj [|
-      ("mode", Js.Unsafe.js_expr "''");
-      ("readOnly", Js.Unsafe.js_expr "true");
-      ("lineWrapping", Js.Unsafe.js_expr "true");
-    |])
-    |]
-  in
-  ignore(editor##getTextArea##.nextElementSibling##.classList##add (Js.string "og-editor"));
-  ignore(console##getTextArea##.nextElementSibling##.classList##add (Js.string "og-console"));
-  editor##on (Js.string "change") (Js.Unsafe.inject (Js.Unsafe.callback
-      (debounce (fun _ -> (
-        worker##postMessage (Js.Unsafe.obj [|
-          ("msgId", Js.Unsafe.inject id);
-          ("code", Js.Unsafe.inject editor##getValue);
-          ("msgType", Js.Unsafe.inject (Js.string "type"));
-        |]);
-      )) 500.)
-  ));
-  (id, console, editor)
-)
-
 
 let highlight_location editor loc = (
   let _file1 = loc##.locStart##.posFname in
@@ -153,76 +155,117 @@ let highlight_location editor loc = (
   editor##.doc##markText from to_ options;
 )
 
-
-
 let remove_marks editor = (
   editor##.doc##getAllMarks##forEach(fun mark -> mark##clear)
 )
 
+let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
+  let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
+  let editor = Js.Unsafe.meth_call code_mirror "fromTextArea" [|
+    (Js.Unsafe.inject textarea);
+    (Js.Unsafe.obj [|
+      ("mode", Js.Unsafe.js_expr "'ocaml'");
+      ("lineNumbers", Js.Unsafe.js_expr "false");
+      ("matchBrackets", Js.Unsafe.js_expr "true");
+      ("extraKeys", (Js.Unsafe.obj [|
+        ("Ctrl-Space", Js.Unsafe.js_expr "'autocomplete'");
+      |]));
+    |])
+  |]
+  in
+  let doc = Dom_html.document in
+  let consoleTextArea = Dom_html.createTextarea doc in
+  let ta = editor##getTextArea () in
+  let nextPart = ta##.nextElementSibling##.nextElementSibling in
+  let toolbar = Dom_html.createDiv doc in
+  let error_icon = Dom_html.createDiv doc in
+  error_icon##.classList##add (Js.string "og-error-icon");
+  let execute_icon = Dom_html.createDiv doc in
+
+  execute_icon##.classList##add (Js.string "og-execute-icon");
+  Dom.appendChild toolbar error_icon;
+  Dom.appendChild toolbar execute_icon;
+  toolbar##.classList##add (Js.string "og-toolbar");
+  toolbar##.classList##add (Js.string "og-show-execute");
+
+  ignore(ta##.parentNode##insertBefore toolbar nextPart);
+  ignore(ta##.parentNode##insertBefore consoleTextArea nextPart);
+  let console = Js.Unsafe.meth_call code_mirror "fromTextArea" [|
+    (Js.Unsafe.inject consoleTextArea);
+    (Js.Unsafe.obj [|
+      ("mode", Js.Unsafe.js_expr "''");
+      ("readOnly", Js.Unsafe.js_expr "true");
+      ("lineWrapping", Js.Unsafe.js_expr "true");
+    |])
+    |]
+  in
+  execute_icon##.onclick := Dom_html.handler (fun _ ->
+    let promise = Code_execution.post_message [|
+      ("code", Js.Unsafe.inject editor##getValue);
+      ("msgType", Js.Unsafe.inject (Js.string "execute"));
+    |]
+    in
+    promise##_then (fun data -> console##setValue data##.result);
+    Js._true
+  );
+  ignore(editor##getTextArea##.nextElementSibling##.classList##add (Js.string "og-editor"));
+  ignore(console##getTextArea##.nextElementSibling##.classList##add (Js.string "og-console"));
+  editor##on (Js.string "change") (Js.Unsafe.inject (Js.Unsafe.callback
+      (debounce (fun _ -> (
+        let promise = Code_execution.post_message [|
+          ("code", Js.Unsafe.inject editor##getValue);
+          ("msgType", Js.Unsafe.inject (Js.string "type"));
+        |]
+        in
+        promise##_then (fun data -> (
+          remove_marks editor;
+          let msgType = Js.to_string data##.msgType in
+          match msgType with
+          | "Output" -> (
+           let msg = Js.string data##.message in
+           console##setValue msg;
+           show_error_icon editor;
+         )
+          | "TypetexpError"
+          | "TypemodError"
+          | "TypecoreError"
+          | "LexerError"
+          | "SyntaxError" -> (
+            let locations = data##.locations in
+            let msg = Js.string data##.message in
+            show_error_icon editor;
+            console##setValue msg;
+            Array.iter (highlight_location editor) locations;
+            )
+          | "NoSyntaxErrors" -> (
+            show_execute_icon editor;
+            console##setValue (Js.string "");
+          )
+          | _ as msgType -> failwith ("Not properly handled: " ^ msgType)
+
+
+        ));
+
+      )) 500.)
+  ));
+  (id, console, editor)
+)
 
 let () = (
   info "[OCaml-gist] The inspector slows down the performance of executing OCaml code significantly.";
-  let worker = Worker.create "ocaml_webworker.js" in
   let textareas = Dom.list_of_nodeList (Dom_html.document##querySelectorAll (Js.string "textarea[data-ocaml]")) in
   let i = ref (-1) in
   let editors = List.map (fun textarea ->
     let textarea = Js.Opt.to_option (Dom_html.CoerceTo.textarea textarea) in
     match textarea with
-    | Some textarea -> ( i := !i + 1; textarea##setAttribute (Js.string "position") (Js.string (string_of_int !i)); Some (to_code_mirror !i textarea worker))
+    | Some textarea -> ( i := !i + 1; textarea##setAttribute (Js.string "position") (Js.string (string_of_int !i)); Some (to_code_mirror !i textarea))
     | None -> None
   ) textareas
   in
-  worker##.onmessage := Dom.handler (fun msg -> (
-    let data = msg##.data in
-    let msgType:string = Js.to_string data##.msgType in
-    let msgId:int = data##.msgId in
-    let maybeEditor = List.nth editors msgId in
-    match maybeEditor with
-    | Some (id, console, editor) -> (
-      remove_marks editor;
-      let _ = match msgType with
-      | "Output" -> (
-          let msg = Js.string data##.message in
-          console##setValue msg;
-          show_error_icon editor;
-        )
-      | "TypetexpError"
-      | "TypemodError"
-      | "TypecoreError"
-      | "LexerError"
-      | "SyntaxError" -> (
-        let locations = data##.locations in
-        let msg = Js.string data##.message in
-        show_error_icon editor;
-        console##setValue msg;
-        Array.iter (highlight_location editor) locations;
-        )
-
-      | "NoSyntaxErrors" -> (
-        show_execute_icon editor;
-        console##setValue (Js.string "");
-      )
-      | "execute" -> (
-        console##setValue data##.result;
-        )
-      | "complete_prefix" -> (
-        print_endline "complete the prefix here..."
-        )
-      | _ as msgType -> failwith ("This should not happen: " ^ msgType)
-      in
-      Firebug.console##info (Js.Unsafe.inject msg##.data);
-      Js.bool false
-    )
-    | None -> (
-      (* should not happen at all... *)
-      Js.bool false
-      )
-  ));
   let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
   ignore(Js.Unsafe.meth_call code_mirror "registerHelper" [|
     Js.Unsafe.inject (Js.string "hint");
     Js.Unsafe.inject (Js.string "ocaml");
-    Js.Unsafe.inject (showHint worker)
+    Js.Unsafe.inject showHint
   |]);
-  Js.Unsafe.global##.shared := worker;
 )

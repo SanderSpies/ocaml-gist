@@ -36,7 +36,7 @@
           error.svg
           execute.svg
           show-hint.js
-          javascript-hint.js))
+          active-line.js))
 ))
 
 (alias (

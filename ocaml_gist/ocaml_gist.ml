@@ -96,6 +96,11 @@ let rec get_token editor pos (result:response_list) = (
     get_token editor (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject pos##.line; Js.Unsafe.inject token##.start |] ) ([token] @ result)
 )
 
+
+let remove_marks editor = (
+  editor##.doc##getAllMarks##forEach(fun mark -> mark##clear)
+)
+
 let showHint editor = (
   let cur = editor##getCursor in
   let (start, _end, hint) = get_token editor cur [] in
@@ -112,6 +117,8 @@ let showHint editor = (
     |]
     in
     promise##_then (fun data -> (
+      remove_marks editor;
+      Firebug.console##log data##.suggestions;
       let suggestions = data##.suggestions##map (fun suggestion ->
         suggestion##.name
       ) in
@@ -155,9 +162,6 @@ let highlight_location editor loc = (
   editor##.doc##markText from to_ options;
 )
 
-let remove_marks editor = (
-  editor##.doc##getAllMarks##forEach(fun mark -> mark##clear)
-)
 
 let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
   let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
@@ -170,6 +174,7 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
       ("extraKeys", (Js.Unsafe.obj [|
         ("Ctrl-Space", Js.Unsafe.js_expr "'autocomplete'");
       |]));
+      ("styleActiveLine", Js.Unsafe.inject (Js.bool true))
     |])
   |]
   in
@@ -212,39 +217,47 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
   ignore(console##getTextArea##.nextElementSibling##.classList##add (Js.string "og-console"));
   editor##on (Js.string "change") (Js.Unsafe.inject (Js.Unsafe.callback
       (debounce (fun _ -> (
-        let promise = Code_execution.post_message [|
-          ("code", Js.Unsafe.inject editor##getValue);
-          ("msgType", Js.Unsafe.inject (Js.string "type"));
-        |]
-        in
-        promise##_then (fun data -> (
-          remove_marks editor;
-          let msgType = Js.to_string data##.msgType in
-          match msgType with
-          | "Output" -> (
-           let msg = Js.string data##.message in
-           console##setValue msg;
-           show_error_icon editor;
-         )
-          | "TypetexpError"
-          | "TypemodError"
-          | "TypecoreError"
-          | "LexerError"
-          | "SyntaxError" -> (
-            let locations = data##.locations in
-            let msg = Js.string data##.message in
-            show_error_icon editor;
-            console##setValue msg;
-            Array.iter (highlight_location editor) locations;
-            )
-          | "NoSyntaxErrors" -> (
+        let completion = Js.Opt.to_option editor##.state##.completionActive in
+        match completion with
+        | Some _ -> (
             show_execute_icon editor;
-            console##setValue (Js.string "");
+            console##setValue (Js.string "")
           )
-          | _ as msgType -> failwith ("Not properly handled: " ^ msgType)
+        | _ -> (
+          let promise = Code_execution.post_message [|
+            ("code", Js.Unsafe.inject editor##getValue);
+            ("msgType", Js.Unsafe.inject (Js.string "type"));
+          |]
+          in
+          promise##_then (fun data -> (
+            remove_marks editor;
+            let msgType = Js.to_string data##.msgType in
+            match msgType with
+            | "Output" -> (
+             let msg = Js.string data##.message in
+             console##setValue msg;
+             show_error_icon editor;
+           )
+            | "TypetexpError"
+            | "TypemodError"
+            | "TypecoreError"
+            | "LexerError"
+            | "SyntaxError" -> (
+              let locations = data##.locations in
+              let msg = Js.string data##.message in
+              show_error_icon editor;
+              console##setValue msg;
+              Array.iter (highlight_location editor) locations;
+              )
+            | "NoSyntaxErrors" -> (
+              show_execute_icon editor;
+              console##setValue (Js.string "");
+            )
+            | _ as msgType -> failwith ("Not properly handled: " ^ msgType)
 
 
-        ));
+          ));
+        )
 
       )) 500.)
   ));

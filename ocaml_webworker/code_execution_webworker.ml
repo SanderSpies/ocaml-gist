@@ -235,7 +235,7 @@ Worker.set_onmessage (fun code ->
       let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
       let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
       let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
-      let show_docs = code##.showDocs in
+      let show_docs = true in
       let pos_fname = Js.to_string code##.posFname in
       let pos = Lexing.{
         pos_fname;

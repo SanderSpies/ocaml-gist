@@ -27,6 +27,7 @@ doc: build
 	cp _build/default/ocaml_gist/execute.svg docs/execute.svg
 	cp _build/default/ocaml_gist/ocaml.js docs/ocaml.js
 	cp _build/default/ocaml_gist/show-hint.js docs/show-hint.js
+	cp _build/default/ocaml_gist/active-line.js docs/active-line.js
 
 run:
 	jbuilder build @run

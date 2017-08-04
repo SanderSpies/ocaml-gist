@@ -124,6 +124,14 @@
         color: white;
       }
 
+      .CodeMirror-activeline-background {
+        background-color: transparent;
+      }
+
+      .CodeMirror-focused .CodeMirror-activeline-background {
+        background-color: rgba(153, 187, 255, 0.04);
+      }
+
     </style>
 
   </head>
@@ -270,6 +278,7 @@ Extended_interval.contains (Extended_interval.create 3 10) 4;;
     <textarea data-ocaml>let a = 2;;</textarea>
   </body>
   <script src="codemirror.js"></script>
+  <script src="active-line.js"></script>
   <script src="show-hint.js"></script>
   <script src="ocaml.js"></script>
   <script src="ocaml_gist.bc.js"></script>

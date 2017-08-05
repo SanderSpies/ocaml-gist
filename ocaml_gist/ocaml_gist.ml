@@ -144,6 +144,8 @@ let show_execute_icon editor = (
   | None -> ()
 )
 
+let unboundRegexp = Regexp.regexp "^Unbound"
+
 let highlight_location editor loc = (
   let _file1 = loc##.locStart##.posFname in
   let line1 = loc##.locStart##.posLnum in
@@ -171,9 +173,9 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
       ("mode", Js.Unsafe.js_expr "'ocaml'");
       ("lineNumbers", Js.Unsafe.js_expr "false");
       ("matchBrackets", Js.Unsafe.js_expr "true");
-      ("extraKeys", (Js.Unsafe.obj [|
+      (* ("extraKeys", (Js.Unsafe.obj [|
         ("Ctrl-Space", Js.Unsafe.js_expr "'autocomplete'");
-      |]));
+      |])); *)
       ("styleActiveLine", Js.Unsafe.inject (Js.bool true))
     |])
   |]
@@ -243,11 +245,19 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
             | "TypecoreError"
             | "LexerError"
             | "SyntaxError" -> (
-              let locations = data##.locations in
               let msg = Js.string data##.message in
-              show_error_icon editor;
-              console##setValue msg;
-              Array.iter (highlight_location editor) locations;
+              let str_match = Regexp.string_match unboundRegexp (Js.to_string msg) 0 in
+              match str_match with
+              | Some _ ->
+                let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
+                ignore(Js.Unsafe.meth_call code_mirror "showHint" [| editor |])
+              | _ -> (
+                let locations = data##.locations in
+                let msg = Js.string data##.message in
+                show_error_icon editor;
+                console##setValue msg;
+                Array.iter (highlight_location editor) locations;
+              )
               )
             | "NoSyntaxErrors" -> (
               show_execute_icon editor;

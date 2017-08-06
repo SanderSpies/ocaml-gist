@@ -36,6 +36,8 @@ let show_error_icon editor = (
 
 module Code_execution = struct
 
+
+
   let promise_global = Js.Unsafe.global##._Promise
 
   type response = <msgId: int Js.prop> Js.t
@@ -46,7 +48,7 @@ module Code_execution = struct
 
   type 'a responses = (int, 'a resolve) Hashtbl.t
 
-  let awaiting_responses:('a responses) = Hashtbl.create 50
+  let awaiting_responses:(response responses) = Hashtbl.create 50
 
   let unique_id = ref 0;;
 
@@ -56,7 +58,10 @@ module Code_execution = struct
       let msgId = data##.msgId in
       let resolve_fn = Hashtbl.find awaiting_responses msgId in
       Hashtbl.remove awaiting_responses msgId;
-      resolve_fn data;
+
+      ignore(Js.Unsafe.fun_call resolve_fn [| Js.Unsafe.inject data |]);
+
+
       Js.bool true;
     ))
   )
@@ -128,7 +133,12 @@ let showHint editor = (
         ("to", (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject cur##.line; Js.Unsafe.inject _end|] ));
       |]
     ));
-  else  ()
+  else
+    Js.Unsafe.obj [|
+      ("list", Js.Unsafe.inject (Js.array [| |]));
+      ("from", (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject cur##.line; Js.Unsafe.inject start|] ));
+      ("to", (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject cur##.line; Js.Unsafe.inject _end|] ));
+    |]
 )
 
 let show_execute_icon editor = (

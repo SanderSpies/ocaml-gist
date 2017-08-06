@@ -58,10 +58,7 @@ module Code_execution = struct
       let msgId = data##.msgId in
       let resolve_fn = Hashtbl.find awaiting_responses msgId in
       Hashtbl.remove awaiting_responses msgId;
-
       ignore(Js.Unsafe.fun_call resolve_fn [| Js.Unsafe.inject data |]);
-
-
       Js.bool true;
     ))
   )
@@ -133,12 +130,13 @@ let showHint editor = (
         ("to", (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject cur##.line; Js.Unsafe.inject _end|] ));
       |]
     ));
-  else
+  else (
     Js.Unsafe.obj [|
       ("list", Js.Unsafe.inject (Js.array [| |]));
       ("from", (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject cur##.line; Js.Unsafe.inject start|] ));
       ("to", (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject cur##.line; Js.Unsafe.inject _end|] ));
     |]
+  )
 )
 
 let show_execute_icon editor = (
@@ -227,6 +225,14 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
   );
   ignore(editor##getTextArea##.nextElementSibling##.classList##add (Js.string "og-editor"));
   ignore(console##getTextArea##.nextElementSibling##.classList##add (Js.string "og-console"));
+  editor##on (Js.string "focus") (Js.Unsafe.inject (Js.Unsafe.callback (fun _ ->
+    ignore(Code_execution.post_message [|
+      ("code", Js.Unsafe.inject editor##getValue);
+      ("msgType", Js.Unsafe.inject (Js.string "type"));
+    |]);
+    Js._true
+  )));
+
   editor##on (Js.string "change") (Js.Unsafe.inject (Js.Unsafe.callback
       (debounce (fun _ -> (
         let completion = Js.Opt.to_option editor##.state##.completionActive in

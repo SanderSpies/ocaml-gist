@@ -125,7 +125,9 @@ let showHint editor = (
       let suggestions = data##.suggestions##map (fun suggestion ->
         Js.Unsafe.obj [|
           ("title", suggestion##.name);
-          ("doc", suggestion##.doc)
+          ("doc", suggestion##.doc);
+          ("desc", suggestion##.desc);
+          ("kind", suggestion##.kind);
         |]
       ) in
       Js.Unsafe.obj [|

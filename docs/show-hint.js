@@ -219,7 +219,18 @@
       elt.className = className;
       if (cur.render) cur.render(elt, data, cur);
       else {
-        elt.appendChild(document.createTextNode(getText(cur)));
+        var kind = document.createElement('div');
+        kind.className = "CodeMirror-hint-kind";
+        kind.innerHTML = cur.kind;
+        elt.appendChild(kind);
+        var title = document.createElement('div');
+        title.className = "CodeMirror-hint-title";
+        title.innerHTML = getText(cur);
+        elt.appendChild(title);
+        var typ = document.createElement('div');
+        typ.className = "CodeMirror-hint-type-info";
+        typ.innerHTML = cur.desc;
+        elt.appendChild(typ);
       }
       elt.hintId = i;
     }

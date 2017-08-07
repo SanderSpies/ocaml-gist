@@ -21175,7 +21175,7 @@ b(a){return a.clear()}return a.doc.getAllMarks().forEach(b)}function
 aMC(b){var
 a=b.getCursor(),c=aMy(b,a,0),e=c[3],f=c[2],d=c[1];gF(dz(b.getTextArea().getAttribute(L4)));if(p(e,aMD)){pL(aME);var
 g=oU([0,[0,aMK,e.toString()],[0,aMJ,l],[0,aMI,a.line],[0,aMH,0],[0,aMG,d],[0,aMF,"complete_prefix"]]);return g.then(function(c){Gb(b);ur.log(c.suggestions);function
-e(a){return{"title":a.name,"doc":a.doc}}var
+e(a){return{"title":a.name,"doc":a.doc,"desc":a.desc,"kind":a.kind}}var
 g=c.suggestions.map(e),h=CodeMirror.Pos(a.line,f);return{"list":g,"from":CodeMirror.Pos(a.line,d),"to":h}})}var
 h=CodeMirror.Pos(a.line,f),i=CodeMirror.Pos(a.line,d);return{"list":aOx([0]),"from":i,"to":h}}function
 Gc(c){var

@@ -113,12 +113,26 @@
 
       .CodeMirror-hint {
         margin: 0;
-        white-space: pre;
+        white-space: nowrap;
         cursor: pointer;
         padding: 5px 0;
         padding-left: 0.6em;
         padding-right: 0.6em;
         min-width: min-content;
+      }
+
+      .CodeMirror-hint-kind {
+        display:none;
+      }
+
+      .CodeMirror-hint-title {
+        display:inline-block;
+      }
+
+      .CodeMirror-hint-type-info {
+        display:inline-block;
+        padding-left: 10px;
+        color: rgba(171, 178, 191, 0.44);
       }
 
       li.CodeMirror-hint-active {

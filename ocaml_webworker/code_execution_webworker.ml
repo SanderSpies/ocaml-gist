@@ -151,8 +151,6 @@ let autocomplete (pos:Lexing.position) str = (
     let (env, node) = List.hd (Mbrowse.enclosing pos foo) in
     let entries = Completion.node_complete env node str in
     let entries = print_completion_entries entries in
-    (* Firebug.console##log (Js.Unsafe.inject res); *)
-
     Some (Array.map (fun ({Query_protocol.Compl.name; kind; desc; info}) ->
        (name, kind, desc, info)) (Array.of_list entries))
   )

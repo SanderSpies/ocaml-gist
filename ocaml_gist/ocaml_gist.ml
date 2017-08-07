@@ -11,6 +11,7 @@ let log s = (
   Firebug.console##log (Js.string s)
 )
 
+
 let debounce func timeout_ms = (
   let noop () = () in
   let timeout = ref (Dom_html.setTimeout noop timeout_ms) in
@@ -122,7 +123,10 @@ let showHint editor = (
       remove_marks editor;
       Firebug.console##log data##.suggestions;
       let suggestions = data##.suggestions##map (fun suggestion ->
-        suggestion##.name
+        Js.Unsafe.obj [|
+          ("title", suggestion##.name);
+          ("doc", suggestion##.doc)
+        |]
       ) in
       Js.Unsafe.obj [|
         ("list", suggestions);
@@ -265,6 +269,7 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
               let str_match = Regexp.string_match unboundRegexp (Js.to_string msg) 0 in
               match str_match with
               | Some _ ->
+                log "onChange calls to showHint here";
                 let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
                 ignore(Js.Unsafe.meth_call code_mirror "showHint" [| editor |])
               | _ -> (

@@ -109,6 +109,40 @@ let type_code code = (
       )
 ))
 
+
+
+
+
+let print o formatter = Extend_protocol.Reader.(
+  match o with
+  | Out_value out_value -> !Oprint.out_value formatter out_value
+  | Out_type out_type -> !Oprint.out_type formatter out_type
+  | Out_class_type  out_class_type -> !Oprint.out_class_type formatter out_class_type
+  | Out_module_type out_module_type -> !Oprint.out_module_type formatter out_module_type
+  | Out_sig_item sig_item -> !Oprint.out_sig_item formatter sig_item
+  | Out_signature signature -> !Oprint.out_signature formatter signature
+  | Out_type_extension ext -> !Oprint.out_type_extension formatter ext
+  | Out_phrase phrase -> !Oprint.out_phrase formatter phrase
+)
+
+let print_completion_entries entries =
+  let input_ref = ref [] and output_ref = ref [] in
+  let preprocess entry =
+    match Completion.raw_info_printer entry with
+    | `Concat (s, o) -> failwith "not handled properly yet..."
+    | `Print o ->
+      let buffer = Buffer.create 100 in
+      let formatter = Format.formatter_of_buffer buffer in
+      print o formatter;
+      Format.pp_print_flush formatter ();
+      let msg = Buffer.to_bytes buffer in
+      msg
+    | `String s -> s
+  in
+  let entries = List.rev_map (Completion.map_entry preprocess) entries in
+  List.rev entries
+
+
 let autocomplete (pos:Lexing.position) str = (
   match !latest_env, !latest_typed_structure with
   | Some latest_env, Some latest_typed_structure -> (
@@ -116,6 +150,8 @@ let autocomplete (pos:Lexing.position) str = (
     let (foo:Mbrowse.t list) = [[(latest_env, Structure latest_typed_structure)]] in
     let (env, node) = List.hd (Mbrowse.enclosing pos foo) in
     let entries = Completion.node_complete env node str in
+    let entries = print_completion_entries entries in
+    (* Firebug.console##log (Js.Unsafe.inject res); *)
 
     Some (Array.map (fun ({Query_protocol.Compl.name; kind; desc; info}) ->
        (name, kind, desc, info)) (Array.of_list entries))
@@ -245,6 +281,7 @@ Worker.set_onmessage (fun code ->
       } in
       let text = Js.to_string code##.text in
       let result = autocomplete pos text in
+
       match result with
       | Some suggestions ->
         let kind_to_string = function
@@ -278,7 +315,7 @@ Worker.set_onmessage (fun code ->
             ("name", Js.Unsafe.inject (Js.string name));
             ("kind", Js.Unsafe.inject (Js.string (kind_to_string kind)));
             ("doc", Js.Unsafe.inject (Js.string doc));
-            (* ("desc", Js.Unsafe.inject (Js.string desc)); *)
+            ("desc", Js.Unsafe.inject (Js.string desc));
             (* ("desc", desc); *)
             (* ("info", Js.Unsafe.inject (Js.string info)); *)
           |]

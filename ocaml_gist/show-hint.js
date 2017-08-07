@@ -46,6 +46,13 @@
     completion.update(true);
   });
 
+  function formatDoc(doc) {
+    return doc
+            .replace(/\[([a-zA-Z._><0-9 ]*)]/gi, "<code>$1</code>")
+            .replace(/\n/gi,"<br />")
+            .replace(/\{!([a-zA-Z._]*)}/gi, "<code>$1</code>");
+  }
+
   function Completion(cm, options) {
     this.cm = cm;
     this.options = options;
@@ -125,12 +132,8 @@
       this.data = data;
 
       if (data && data.list.length) {
-        if (picked && data.list.length == 1) {
-          this.pick(data, 0);
-        } else {
-          this.widget = new Widget(this, data);
-          CodeMirror.signal(data, "shown");
-        }
+        this.widget = new Widget(this, data);
+        CodeMirror.signal(data, "shown");
       }
     }
   };
@@ -153,8 +156,7 @@
   }
 
   function getText(completion) {
-    if (typeof completion == "string") return completion;
-    else return completion.text;
+    return completion.title;
   }
 
   function buildKeyMap(completion, handle) {
@@ -216,9 +218,25 @@
       if (cur.className != null) className = cur.className + " " + className;
       elt.className = className;
       if (cur.render) cur.render(elt, data, cur);
-      else elt.appendChild(document.createTextNode(cur.displayText || getText(cur)));
+      else {
+        elt.appendChild(document.createTextNode(getText(cur)));
+      }
       elt.hintId = i;
     }
+
+    var docDivContainer = document.createElement('div');
+    docDivContainer.className = "CodeMirror-hints-doc";
+    var docDiv = this.docDiv = document.createElement('div');
+    var contents = formatDoc(completions[this.selectedHint].doc);
+    if (contents.length > 0) {
+      docDiv.className = 'CodeMirror-hints-doc-content';
+    }
+    else {
+      docDiv.className = '';
+    }
+    docDiv.innerHTML = contents;
+    docDivContainer.appendChild(docDiv);
+    hints.appendChild(docDivContainer);
 
     var pos = cm.cursorCoords(completion.options.alignWithWord ? data.from : null);
     var left = pos.left, top = pos.bottom, below = true;
@@ -238,7 +256,7 @@
         hints.style.top = (top = pos.top - height) + "px";
         below = false;
       } else if (height > winH) {
-        hints.style.height = (winH - 5) + "px";
+        // hints.style.height = (winH - 5) + "px";
         hints.style.top = (top = pos.bottom - box.top) + "px";
         var cursor = cm.getCursor();
         if (data.from.ch != cursor.ch) {
@@ -346,6 +364,15 @@
         this.hints.scrollTop = node.offsetTop - 3;
       else if (node.offsetTop + node.offsetHeight > this.hints.scrollTop + this.hints.clientHeight)
         this.hints.scrollTop = node.offsetTop + node.offsetHeight - this.hints.clientHeight + 3;
+      var contents = formatDoc(this.data.list[this.selectedHint].doc);
+      var docDiv = this.docDiv;
+      if (contents.length > 0) {
+        docDiv.className = 'CodeMirror-hints-doc-content';
+      }
+      else {
+        docDiv.className = '';
+      }
+      docDiv.innerHTML = contents;
       CodeMirror.signal(this.data, "select", this.data.list[this.selectedHint], node);
     },
 

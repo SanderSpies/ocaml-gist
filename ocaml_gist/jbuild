@@ -1,6 +1,6 @@
 (executable (
   (name ocaml_gist)
-  (modules (ocaml_gist))
+  (modules ( ocaml_gist2 ocaml_gist))
   (libraries (js_of_ocaml js_of_ocaml-compiler))
   (js_of_ocaml (
     (flags (+weak.js +toplevel.js --opt 3))

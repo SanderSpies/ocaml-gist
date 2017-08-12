@@ -31,13 +31,6 @@ open Std
 
 let parse_expr expr =
   let lexbuf = Lexing.from_string expr in
-  (* let state = Lexer_raw.make keywords in
-  let rec lexer = function
-    | Lexer_raw.Fail (e,l) -> raise (Lexer_raw.Error (e,l))
-    | Lexer_raw.Return token -> token
-    | Lexer_raw.Refill k -> lexer (k ())
-  in
-  let lexer lexbuf = lexer (Lexer_raw.token_without_comments state lexbuf) in *)
   Parse.expression lexbuf
 
 let with_cmis f =

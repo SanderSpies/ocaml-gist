@@ -1,4 +1,6 @@
 
+Ocaml_gist2.test ();;
+
 let info s = (
   Firebug.console##info (Js.string s)
 )
@@ -79,24 +81,28 @@ type response = <string: Js.js_string Js.t Js.prop; start: int Js.prop> Js.t
 
 type response_list = response list
 
-let rec get_token editor pos (result:response_list) = (
-  (* TODO: ensure autocomplete only takes proper variables *)
-  let token:response = editor##getTokenAt pos in
-  let str = String.trim (Js.to_string token##.string) in
-  match str with
-  | "" ->
-    if List.length result = 0 then
-      (-1, 5, "")
-    else
-      let str = String.concat "" (List.map (fun (token:response) -> Js.to_string token##.string) result) in
-      let foo = List.nth (List.rev result) 0 in
-      let x = Js.to_string foo##.string in
-      if x.[0] = '.' then
-        (foo##.start + 1, Js.Unsafe.get foo "end", str)
+let get_token editor pos = (
+  let rec inner editor pos (result:response_list) = (
+    (* TODO: ensure autocomplete only takes proper variables *)
+    let token:response = editor##getTokenAt pos in
+    let str = String.trim (Js.to_string token##.string) in
+    match str with
+    | "" ->
+      if List.length result = 0 then
+        (-1, -1, "")
       else
-        (foo##.start, Js.Unsafe.get foo "end", str)
-  | _ ->
-    get_token editor (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject pos##.line; Js.Unsafe.inject token##.start |] ) ([token] @ result)
+        let str = String.concat "" (List.map (fun (token:response) -> Js.to_string token##.string) result) in
+        let foo = List.nth (List.rev result) 0 in
+        let x = Js.to_string foo##.string in
+        if x.[0] = '.' then
+          (foo##.start + 1, Js.Unsafe.get foo "end", str)
+        else
+          (foo##.start, Js.Unsafe.get foo "end", str)
+    | _ ->
+      inner editor (Js.Unsafe.fun_call (Js.Unsafe.js_expr "CodeMirror.Pos") [| Js.Unsafe.inject pos##.line; Js.Unsafe.inject token##.start |] ) ([token] @ result)
+    )
+  in
+  inner editor pos []
 )
 
 
@@ -106,7 +112,7 @@ let remove_marks editor = (
 
 let showHint editor = (
   let cur = editor##getCursor in
-  let (start, _end, hint) = get_token editor cur [] in
+  let (start, _end, hint) = get_token editor cur in
   let msgId = int_of_string (Js.to_string (editor##getTextArea##getAttribute (Js.string "position"))) in
   if hint <> "" then
     let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
@@ -160,6 +166,16 @@ let show_execute_icon editor = (
 
 let unboundRegexp = Regexp.regexp "^Unbound"
 
+let showTooltip tooltip left top text = (
+  tooltip##.style##.left := Js.string (string_of_int left ^ "px");
+  tooltip##.style##.top := Js.string (string_of_int top ^ "px");
+  tooltip##.style##.display := Js.string "block";
+  tooltip##.innerHTML := Js.string text)
+
+let hideTooltip tooltip =
+  tooltip##.style##.display := Js.string "none"
+
+
 let highlight_location editor loc = (
   let _file1 = loc##.locStart##.posFname in
   let line1 = loc##.locStart##.posLnum in
@@ -187,9 +203,7 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
       ("mode", Js.Unsafe.js_expr "'ocaml'");
       ("lineNumbers", Js.Unsafe.js_expr "false");
       ("matchBrackets", Js.Unsafe.js_expr "true");
-      (* ("extraKeys", (Js.Unsafe.obj [|
-        ("Ctrl-Space", Js.Unsafe.js_expr "'autocomplete'");
-      |])); *)
+      ("LeftClick", Js.Unsafe.js_expr "'autocomplete'");
       ("styleActiveLine", Js.Unsafe.inject (Js.bool true))
     |])
   |]
@@ -199,6 +213,8 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
   let ta = editor##getTextArea () in
   let nextPart = ta##.nextElementSibling##.nextElementSibling in
   let toolbar = Dom_html.createDiv doc in
+  let tooltip = Dom_html.createDiv doc in
+  tooltip##.classList##add (Js.string "og-tooltip");
   let error_icon = Dom_html.createDiv doc in
   error_icon##.classList##add (Js.string "og-error-icon");
   let execute_icon = Dom_html.createDiv doc in
@@ -209,6 +225,7 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
   toolbar##.classList##add (Js.string "og-toolbar");
   toolbar##.classList##add (Js.string "og-show-execute");
 
+  ignore(ta##.parentNode##insertBefore tooltip nextPart);
   ignore(ta##.parentNode##insertBefore toolbar nextPart);
   ignore(ta##.parentNode##insertBefore consoleTextArea nextPart);
   let console = Js.Unsafe.meth_call code_mirror "fromTextArea" [|
@@ -231,6 +248,45 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
   );
   ignore(editor##getTextArea##.nextElementSibling##.classList##add (Js.string "og-editor"));
   ignore(console##getTextArea##.nextElementSibling##.classList##add (Js.string "og-console"));
+  let code_mirror = Js.Unsafe.eval_string "CodeMirror" in
+  ignore(Js.Unsafe.meth_call code_mirror "on" [|
+    Js.Unsafe.global##.document;
+    (Js.Unsafe.inject (Js.string "mousemove"));
+    (Js.Unsafe.inject (Js.Unsafe.callback (fun e ->
+      let left:int = e##.pageX in
+      let top:int = e##.pageY in
+      let pos = editor##coordsChar (Js.Unsafe.obj [|
+        ("left", Js.Unsafe.inject left);
+        ("top", Js.Unsafe.inject top);
+       |])
+      in
+      if pos##.outside <> Js._true then (
+        let (start, _end, hint) = get_token editor pos in
+        let startChar = editor##charCoords (Js.Unsafe.obj [|("ch", Js.Unsafe.inject start); ("line", pos##.line)|]) in
+        let start = startChar##.left in
+        let top = startChar##.bottom in
+        let _end = (editor##charCoords (Js.Unsafe.obj [|("ch", Js.Unsafe.inject _end); ("line", pos##.line)|]))##.right in
+        let promise = Code_execution.post_message [|
+          ("msgType", Js.Unsafe.inject (Js.string "type_expr"));
+          ("posFname", Js.Unsafe.inject (Js.string ""));
+          ("posLnum", Js.Unsafe.inject pos##.line);
+          ("posBol", Js.Unsafe.inject 0);
+          ("posCnum", Js.Unsafe.inject pos##.ch);
+          ("expr", Js.Unsafe.inject (Js.string hint))
+        |]
+        in
+        promise##_then (fun data ->
+          let _type = Js.to_string data##._type in
+          if _type <> "" then
+            showTooltip tooltip start top _type
+          else
+            hideTooltip tooltip
+        );
+      )
+    )))
+  |]);
+
+
   editor##on (Js.string "focus") (Js.Unsafe.inject (Js.Unsafe.callback (fun _ ->
     ignore(Code_execution.post_message [|
       ("code", Js.Unsafe.inject editor##getValue);
@@ -245,7 +301,7 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
         match completion with
         | Some _ -> (
             show_execute_icon editor;
-            console##setValue (Js.string "")
+            console##setValue (Js.string "");
           )
         | _ -> (
           let promise = Code_execution.post_message [|
@@ -285,6 +341,7 @@ let to_code_mirror id (textarea:Dom_html.textAreaElement Js.t) = (
             | "NoSyntaxErrors" -> (
               show_execute_icon editor;
               console##setValue (Js.string "");
+
             )
             | _ as msgType -> failwith ("Not properly handled: " ^ msgType)
 

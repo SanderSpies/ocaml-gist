@@ -429,6 +429,40 @@ Worker.set_onmessage (fun code ->
             |])
         | _ -> ()
       )
+  | "type_expr" -> (
+    match !latest_env, !latest_typed_structure with
+    | Some env, Some ts ->
+      let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
+      let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
+      let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
+      let pos_fname = Js.to_string code##.posFname in
+      let pos = Lexing.{
+        pos_fname;
+        pos_lnum;
+        pos_bol;
+        pos_cnum;
+      } in
+      let expr = Js.to_string code##.expr in
+      let buffer = Buffer.create 100 in
+      let formatter = Format.formatter_of_buffer buffer in
+      let res = Type_utils.type_in_env env formatter expr in
+      if res = true then (
+        Format.pp_print_flush formatter ();
+        let result = Buffer.to_bytes buffer in
+        Worker.post_message (Js.Unsafe.obj [|
+            ("msgId", code##.msgId);
+            ("msgType", Js.Unsafe.inject (Js.string "type_expr"));
+            ("type", Js.Unsafe.inject  (Js.string result));
+            |]);
+        )
+      else (
+        Worker.post_message (Js.Unsafe.obj [|
+          ("msgId", code##.msgId);
+          ("msgType", Js.Unsafe.inject (Js.string "type_expr"));
+          ("type", Js.Unsafe.inject  (Js.string ""));
+          |]));
+    | _ -> ()
+    )
   | "case_analysis"
   | "occurrences" -> (
       failwith "not implemented yet"

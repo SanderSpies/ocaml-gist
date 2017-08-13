@@ -1,5 +1,6 @@
 Worker.import_scripts ["stdlib.js"; ];;
 
+
 let err s = (
   Firebug.console##error (Js.string s)
 )
@@ -445,6 +446,8 @@ Worker.set_onmessage (fun code ->
       let expr = Js.to_string code##.expr in
       let buffer = Buffer.create 100 in
       let formatter = Format.formatter_of_buffer buffer in
+      let (foo:Mbrowse.t list) = [[(env, Structure ts)]] in
+      let (env, node) = List.hd (Mbrowse.enclosing pos foo) in
       let res = Type_utils.type_in_env env formatter expr in
       if res = true then (
         Format.pp_print_flush formatter ();

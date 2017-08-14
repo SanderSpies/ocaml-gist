@@ -1,18 +1,69 @@
-(executable (
-  (name ocaml_gist)
-  (modules ( ocaml_gist2 ocaml_gist))
-  (libraries (js_of_ocaml js_of_ocaml-compiler))
-  (js_of_ocaml (
-    (flags (+weak.js +toplevel.js --opt 3))
-  ))
-  (preprocess (pps (js_of_ocaml-ppx)))
+(rule
+ ((targets (gist_tool.re))
+  (deps    (src/gist_tool.re))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (index.html))
+  (deps    (src/index.html))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (ocaml.js))
+  (deps    (src/ocaml.js))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (show-hint.js))
+  (deps    (src/show-hint.js))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (active-line.js))
+  (deps    (src/active-line.js))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (codemirror.css))
+  (deps    (src/codemirror.css))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (codemirror.js))
+  (deps    (src/codemirror.js))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (error.svg))
+  (deps    (src/error.svg))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (execute.svg))
+  (deps    (src/execute.svg))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (ocaml_gist.js))
+ (deps (bsconfig.json
+        package.json
+        webpack.config.js))
+ (action (progn
+   (echo "Running npm install (this will take awhile...)")
+   (system "npm install")
+   (echo "Running BuckleScript commands \n")
+   (system "bsb -clean-world")
+   (system "bsb -make-world")
+   (system "bsb")
+   (system "webpack -p")
+   (echo "webpack DONE")
+ ))
 ))
-
-
 
 (rule
  ((targets (ocaml_webworker.js))
-  (action  (copy ${bin:ocaml_webworker.js} ${@}))))
+  (action  (copy ${bin:ocaml_webworker.js} ${@}))
+))
 
 (rule (
   (targets (stdlib.js))
@@ -21,22 +72,20 @@
   ))
 ))
 
-
-
 (alias (
   (name install)
   (package ocaml-gist)
-  (deps ( index.html
-          codemirror.css
-          codemirror.js
-          ocaml.js
-          ocaml_gist.bc.js
-          ocaml_webworker.js
-          stdlib.js
-          error.svg
-          execute.svg
-          show-hint.js
-          active-line.js))
+  (deps (ocaml_gist.js
+         gist_tool.re
+         index.html
+         active-line.js
+         codemirror.css
+         codemirror.js
+         ocaml.js
+         error.svg
+         stdlib.js
+         execute.svg
+         show-hint.js))
 ))
 
 (alias (

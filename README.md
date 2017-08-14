@@ -52,6 +52,13 @@ Demo
 ---
 https://sanderspies.github.io/ocaml-gist/index.html
 
+Requirements
+--
+- OCaml 4.04
+- Node + NPM
+- BuckleScript
+...
+
 License
 ===
 MIT

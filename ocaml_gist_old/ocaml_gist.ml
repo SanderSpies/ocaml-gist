@@ -13,7 +13,6 @@ let log s = (
   Firebug.console##log (Js.string s)
 )
 
-
 let debounce func timeout_ms = (
   let noop () = () in
   let timeout = ref (Dom_html.setTimeout noop timeout_ms) in

@@ -29,5 +29,9 @@ doc: build
 	cp _build/default/ocaml_gist/show-hint.js docs/show-hint.js
 	cp _build/default/ocaml_gist/active-line.js docs/active-line.js
 
+dev_env:
+	cp _build/default/ocaml_gist/stdlib.js ocaml_gist/src/stdlib.js
+	cp _build/default/ocaml_gist/ocaml_webworker.js ocaml_gist/src/ocaml_webworker.js
+
 run:
 	jbuilder build @run

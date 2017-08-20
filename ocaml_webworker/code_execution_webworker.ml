@@ -249,7 +249,7 @@ Worker.set_onmessage (fun code ->
         ("msgId", code##.msgId);
         ("msgType", Js.Unsafe.inject (Js.string m1));
         ("subtype", Js.Unsafe.inject (Js.string m2));
-        ("locations", Js.Unsafe.inject result);
+        ("locations", Js.Unsafe.inject (Js.array result));
         ("message", Js.Unsafe.inject (Js.string (String.trim s)));
       |])
     | None ->

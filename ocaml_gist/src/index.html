@@ -15,7 +15,6 @@
         position: absolute;
         font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
         color: white;
-        display: none;
         font-size: 12px;
         background-color: 528bff;
         box-shadow: 0 2px 8px 1px rgba(0, 0, 0, 0.3);
@@ -24,52 +23,53 @@
         z-index:10000;
       }
 
-      .og-execute-icon {
-        width: 20px;
-        height: 20px;
-        background: url(execute.svg);
-        background-size: 100%;
-        position: relative;
-        display: none;
-        top: 4px;
-        left: 3px;
-        z-index: 1;
-        cursor: pointer;
-      }
-
-      .og-show-execute .og-execute-icon {
-        display: inline-block;
-      }
-
-      .og-error-icon {
-        width: 20px;
-        height: 20px;
-        background: url(error.svg);
-        background-size: 100%;
-        position: relative;
-        display: none;
-        top: 4px;
-        left: 3px;
-        z-index: 1;
-        cursor: pointer;
-      }
-
-      .og-show-error .og-error-icon {
-        display: inline-block;
-      }
-
-      .CodeMirror.og-editor {
-        margin: 0;
+      .og-editor {
         margin-top: 10px;
+      }
+
+      .og-editor .CodeMirror{
+        margin: 0;
         overflow: hidden;
       }
 
-
-      .CodeMirror.og-console {
+      .og-console {
+        color: rgb(171, 178, 191);
+        display: flex;
+        align-content: stretch;
+        font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+        font-size: 12px;
         background-color: #21252b;
         border-top: solid 2px black;
         margin: 0 0px 10px 0px;
-        padding: 0 40px;
+        padding: 4px;
+      }
+
+      .og-icon {
+        align-self: center;
+        flex: 0 1 auto;
+        width: 18px;
+        height: 20px;
+        background-size: 100%;
+        display: inline-block;
+        vertical-align: middle;
+      }
+
+      .og-execute-icon {
+        background: url(execute.svg);
+        cursor: pointer;
+      }
+      .og-error-icon {
+        background: url(error.svg);
+      }
+
+      .og-console-text {
+        flex: 1 1 auto;
+        color: rgb(171, 178, 191);
+        font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+        font-size: 12px;
+        line-height: 18px;
+        display:inline-block;
+        padding-left: 10px;
       }
 
       @media (min-width: 768px) {
@@ -178,13 +178,13 @@
 
   </head>
   <body>
-    <textarea data-ocaml>
+    <div data-ocaml>
 [@@@part "1"];;
 type shape = < area : float >;;
 
 type square = < area : float; width : int >;;
-    </textarea>
-    <textarea data-ocaml>
+    </div>
+    <div data-ocaml>
 let numeric_deriv ~delta ~x ~y ~(f: x:float -> y:float -> float) =
   let x' = x +. delta in
   let y' = y +. delta in
@@ -193,8 +193,8 @@ let numeric_deriv ~delta ~x ~y ~(f: x:float -> y:float -> float) =
   let dy = (f ~x ~y:y' -. base) /. delta in
   (dx,dy)
 ;;
-    </textarea>
-    <textarea data-ocaml>
+    </div>
+    <div data-ocaml>
 type element = Empty | X (* ensure we do not miss cases in patterns *)
 
 (* Whether [row.(c)] for [col0 ≤ c < col1] are all set to [X]. *)
@@ -276,8 +276,8 @@ let rec gen col row patts_col =
        )
     | [] -> assert false
 in gen 0 0 patts_col;;
-    </textarea>
-    <textarea data-ocaml>
+    </div>
+    <div data-ocaml>
 let possible row col used_rows usedD1 usedD2 =
   not (List.mem row used_rows
    || List.mem (row + col) usedD1
@@ -294,11 +294,11 @@ let queens_positions n =
                (row - col :: usedD2)
          else [])
   in aux 1 1 [] [] [];;
-    </textarea>
-    <textarea data-ocaml>
+    </div>
+    <div data-ocaml>
 
-    </textarea>
-    <textarea data-ocaml>
+    </div>
+    <div data-ocaml>
 module Interval = struct
   type t = | Interval of int * int
            | Empty
@@ -316,12 +316,8 @@ module Extended_interval = struct
 end;;
 Extended_interval.contains (Extended_interval.create 3 10) 4;;
 
-    </textarea>
-    <textarea data-ocaml>let a = 2;;</textarea>
+    </div>
+    <div data-ocaml>let a = 2;;</div>
   </body>
-  <script src="codemirror.js"></script>
-  <script src="active-line.js"></script>
-  <script src="show-hint.js"></script>
-  <script src="ocaml.js"></script>
-  <script src="ocaml_gist.js"></script>
+  <script src="./output/ocaml_gist.js"></script>
 </html>

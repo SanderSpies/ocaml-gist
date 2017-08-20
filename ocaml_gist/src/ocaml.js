@@ -1,3 +1,5 @@
+var CodeMirror = require('codemirror');
+
 CodeMirror.defineMode('ocaml', function(config) {
 
   var words = {

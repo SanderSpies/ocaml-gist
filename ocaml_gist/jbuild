@@ -29,11 +29,6 @@
   (action  (copy ${<} ${@}))))
 
 (rule
- ((targets (codemirror.js))
-  (deps    (src/codemirror.js))
-  (action  (copy ${<} ${@}))))
-
-(rule
  ((targets (error.svg))
   (deps    (src/error.svg))
   (action  (copy ${<} ${@}))))
@@ -55,8 +50,9 @@
    (system "bsb -clean-world")
    (system "bsb -make-world")
    (system "bsb")
-   (system "webpack -p")
-   (echo "webpack DONE")
+   (echo "Running webpack")
+   (system "NODE_ENV=production webpack -p")
+
  ))
 ))
 
@@ -80,8 +76,8 @@
          index.html
          active-line.js
          codemirror.css
-         codemirror.js
          ocaml.js
+         ocaml_webworker.js
          error.svg
          stdlib.js
          execute.svg
@@ -89,8 +85,47 @@
 ))
 
 (alias (
+  (name bsb)
+  (deps ((alias install)))
+  (action (progn
+    (echo "Starting bsb watcher\n")
+    (system "bsb -w")
+  ))
+))
+
+(alias (
+  (name webpack)
+  (deps ((alias install)))
+  (action (progn
+    (echo "Starting webpack watcher\n")
+    (system "webpack -w")
+  ))
+))
+
+(alias (
+  (name server)
+  (deps ((alias install)))
+  (action (progn
+    (echo "Starting the server...\n")
+    (system "python -m SimpleHTTPServer")
+  ))
+))
+
+(alias (
+  (name sync)
+  (deps ((alias install)))
+  (action (progn
+    (echo "Do something for syncing...\n")
+  ))
+))
+
+(alias (
   (name runtest)
   (package ocaml-gist)
-  (deps ((alias install)))
-  (action (system "python -m SimpleHTTPServer"))
+  (deps ((alias install)
+         (alias webpack)
+         (alias bsb)
+         (alias server)
+         (alias sync)
+  ))
 ))

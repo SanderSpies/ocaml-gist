@@ -1,10 +1,10 @@
 {
   "name" : "gist_tool",
   "reason" : {"react-jsx" : 2},
-  "bs-dependencies": ["reason-react"],
+  "bs-dependencies": ["reason-react", "bs-webapi"],
   "sources": [
     {
       "dir": "src"
     }
-  ],
+  ]
 }

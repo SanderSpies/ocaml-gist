@@ -8,6 +8,11 @@ external textContent : Dom.element => string = "" [@@bs.get];
 external trim : string => string = "" [@@bs.send];
 
 module CodeMirror = {
+  type t;
+  type fn;
+  external registerHelper : string => string => fn => unit =
+    "" [@@bs.val "CodeMirror.registerHelper"];
+  /* external showHint : t => unit = "" [@@bs.val "CodeMirror.showHint"]; */
   external codeMirror : ReasonReact.reactClass =
     "react-codemirror" [@@bs.module];
   let make
@@ -45,6 +50,7 @@ module CodeMirror = {
 
 module JsPromise = {
   type t 'a;
+  type error;
   type resolve 'a = 'a => unit;
   external make :
     (resolve::resolve 'a => reject::(exn => unit) [@bs] => unit) => t 'a =
@@ -52,6 +58,9 @@ module JsPromise = {
   external then_ : ('a => t 'b) [@bs.uncurry] => t 'b =
     "then" [@@bs.send.pipe : t 'a];
   external resolve : 'a => t 'a = "resolve" [@@bs.val] [@@bs.scope "Promise"];
+  external reject : exn => t 'a = "reject" [@@bs.val] [@@bs.scope "Promise"];
+  external catch : (error => t 'a) [@bs.uncurry] => t 'a =
+    "catch" [@@bs.send.pipe : t 'a];
 };
 
 module JsWorker = {
@@ -73,7 +82,8 @@ module CodeExecution = {
   type postMessage =
     | Type string
     | Execute string
-    | TypeExpression int int string;
+    | TypeExpression int int string
+    | CompletePrefix int int string;
   let worker = JsWorker.make "ocaml_webworker.js";
   let awaitingResponses = MsgMap.make ();
   let uniqueId = ref 0;
@@ -110,6 +120,18 @@ module CodeExecution = {
           "posBol": 0,
           "posFname": ""
         }
+    | CompletePrefix line ch expr =>
+      JsWorker.postMessage
+        worker
+        {
+          "msgId": uniqueId,
+          "msgType": "complete_prefix",
+          "text": expr,
+          "posLnum": line,
+          "posCnum": ch,
+          "posBol": 0,
+          "posFname": ""
+        }
     };
     JsPromise.make (
       fun ::resolve ::reject => MsgMap.set awaitingResponses uniqueId resolve
@@ -117,7 +139,26 @@ module CodeExecution = {
   };
 };
 
+let unboundRegexp = [%bs.re "/^Unbound/"];
+
 module Gist = {
+  let debounceReactEvent func timeout_ms => {
+    let noop () => ();
+    let timeout = ref (Js.Global.setTimeout noop timeout_ms);
+    fun event => {
+      ReactEventRe.Synthetic.persist event;
+      Js.Global.clearTimeout !timeout;
+      timeout := Js.Global.setTimeout (fun _ => func event) timeout_ms
+    }
+  };
+  let debounce func timeout_ms => {
+    let noop () => ();
+    let timeout = ref (Js.Global.setTimeout noop timeout_ms);
+    fun event => {
+      Js.Global.clearTimeout !timeout;
+      timeout := Js.Global.setTimeout (fun _ => func event) timeout_ms
+    }
+  };
   type codeState =
     | Executable
     | Error
@@ -159,6 +200,79 @@ module Gist = {
     };
     ReasonReact.NoUpdate
   };
+  type pos = Js.t {. line : int, ch : int, outside : bool};
+  let getToken editor (pos: pos) => {
+    let rec inner editor (pos: pos) result => {
+      let token = editor##getTokenAt pos;
+      let str = String.trim token##string;
+      switch str {
+      | "" =>
+        if (List.length result == 0) {
+          ((-1), (-1), "")
+        } else {
+          let str =
+            String.concat "" (List.map (fun token => token##string) result);
+          let lastToken = List.nth (List.rev result) 0;
+          let lastTokenString = lastToken##string;
+          if (lastTokenString.[0] == '.') {
+            (lastToken##start + 1, lastToken##_end, str)
+          } else {
+            (lastToken##start, lastToken##_end, str)
+          }
+        }
+      | _ =>
+        let line: int = pos##line;
+        let ch: int = token##start;
+        let pos: pos = {"line": line, "ch": ch, "outside": false};
+        inner editor pos ([token] @ result)
+      }
+    };
+    inner editor pos []
+  };
+  let autocompleteSuggestions codeMirror => {
+    let cur = codeMirror##getCursor ();
+    let (start, end_, token) = getToken codeMirror cur;
+    if (token != "") {
+      JsPromise.(
+        CodeExecution.postMessage (CompletePrefix start end_ token) |>
+        then_ (
+          fun response => {
+            let suggestions:
+              array (
+                Js.t {
+                  .
+                  name : string, doc : string, desc : string, kind : string
+                }
+              ) = response##suggestions;
+            if (Js.Array.length suggestions == 0) {
+              JsPromise.resolve response
+            } else {
+              let suggestions =
+                Js.Array.map
+                  (
+                    fun suggestion => {
+                      "title": suggestion##name,
+                      "doc": suggestion##doc,
+                      "desc": suggestion##desc,
+                      "kind": suggestion##kind
+                    }
+                  )
+                  suggestions;
+              let autoCompleteData = {
+                "list": suggestions,
+                "from": {"line": cur##line, "ch": start},
+                "to": {"line": cur##line, "ch": end_}
+              };
+              codeMirror##showHint {"hint": fun _ => autoCompleteData};
+              JsPromise.resolve response
+            }
+          }
+        )
+      )
+    } else {
+      JsPromise.resolve {"suggestions": [||]}
+    }
+  };
   let console (codeState, message) {ReasonReact.state: state} =>
     ReasonReact.Update {...state, console: message, codeState};
   let handleCodeTypePhase self response => {
@@ -172,26 +286,52 @@ module Gist = {
     | "TypecoreError"
     | "LexerError"
     | "SyntaxError" =>
-      let locations = response##locations;
-      let locations =
-        Array.map
-          (
-            fun loc => {
-              let locStart = {
-                "line": loc##locStart##posLnum - 1,
-                "ch": loc##locStart##posCnum - loc##locStart##posBol
-              };
-              let locEnd = {
-                "line": loc##locEnd##posLnum - 1,
-                "ch": loc##locEnd##posCnum - loc##locEnd##posBol
-              };
-              {locStart, locEnd}
-            }
-          )
-          locations;
-      update codeMirrorAction (highlightLocations locations);
-      update console (Error, response##message)
+      let msg = response##message;
+      let match = Js.Re.test msg unboundRegexp;
+      if match {
+        JsPromise.(
+          update
+            codeMirrorAction
+            (
+              fun editor => {
+                autocompleteSuggestions editor |>
+                then_ (
+                  fun res => {
+                    if (Js.Array.length res##suggestions == 0) {
+                      let locations = response##locations;
+                      let locations =
+                        Array.map
+                          (
+                            fun loc => {
+                              let locStart = {
+                                "line": loc##locStart##posLnum - 1,
+                                "ch":
+                                  loc##locStart##posCnum - loc##locStart##posBol
+                              };
+                              let locEnd = {
+                                "line": loc##locEnd##posLnum - 1,
+                                "ch":
+                                  loc##locEnd##posCnum - loc##locEnd##posBol
+                              };
+                              {locStart, locEnd}
+                            }
+                          )
+                          locations;
+                      update codeMirrorAction (highlightLocations locations);
+                      update console (Error, response##message)
+                    };
+                    JsPromise.resolve ()
+                  }
+                );
+                ()
+              }
+            )
+        )
+      } else {
+        update console (Error, response##message)
+      }
     | "NoSyntaxErrors" => update console (Executable, "")
+    | _ => failwith "Not handled"
     };
     JsPromise.resolve response
   };
@@ -234,35 +374,6 @@ module Gist = {
         codeMirrorAction
         (fun codeMirror => onChange self (codeMirror##getValue ()))
     };
-  type pos = Js.t {. line : int, ch : int, outside : bool};
-  let getToken editor (pos: pos) => {
-    let rec inner editor (pos: pos) result => {
-      let token = editor##getTokenAt pos;
-      let str = String.trim token##string;
-      switch str {
-      | "" =>
-        if (List.length result == 0) {
-          ((-1), (-1), "")
-        } else {
-          let str =
-            String.concat "" (List.map (fun token => token##string) result);
-          let lastToken = List.nth (List.rev result) 0;
-          let lastTokenString = lastToken##string;
-          if (lastTokenString.[0] == '.') {
-            (lastToken##start + 1, lastToken##_end, str)
-          } else {
-            (lastToken##start, lastToken##_end, str)
-          }
-        }
-      | _ =>
-        let line: int = pos##line;
-        let ch: int = token##start;
-        let pos: pos = {"line": line, "ch": ch, "outside": false};
-        inner editor pos ([token] @ result)
-      }
-    };
-    inner editor pos []
-  };
   let setTooltip tooltip {ReasonReact.state: state} =>
     ReasonReact.Update {...state, tooltip};
   let onMouseMove self e => {
@@ -315,7 +426,7 @@ module Gist = {
       tooltip: None
     },
     render: fun self =>
-      <div onMouseMove=(onMouseMove self)>
+      <div onMouseMove=(debounceReactEvent (onMouseMove self) 300)>
         <CodeMirror
           className="og-editor"
           value
@@ -326,7 +437,7 @@ module Gist = {
             "styleActiveLine": true
           }
           onFocusChange=(onFocusChange self)
-          onChange=(onChange self)
+          onChange=(debounce (onChange self) 300)
           ref=(self.update setCodeMirrorRef)
         />
         <div className="og-console">

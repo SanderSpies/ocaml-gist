@@ -288,6 +288,27 @@ module Gist = {
     | "SyntaxError" =>
       let msg = response##message;
       let match = Js.Re.test msg unboundRegexp;
+      let showErrors () => {
+        let locations = response##locations;
+        let locations =
+          Array.map
+            (
+              fun loc => {
+                let locStart = {
+                  "line": loc##locStart##posLnum - 1,
+                  "ch": loc##locStart##posCnum - loc##locStart##posBol
+                };
+                let locEnd = {
+                  "line": loc##locEnd##posLnum - 1,
+                  "ch": loc##locEnd##posCnum - loc##locEnd##posBol
+                };
+                {locStart, locEnd}
+              }
+            )
+            locations;
+        update codeMirrorAction (highlightLocations locations);
+        update console (Error, response##message)
+      };
       if match {
         JsPromise.(
           update
@@ -298,27 +319,7 @@ module Gist = {
                 then_ (
                   fun res => {
                     if (Js.Array.length res##suggestions == 0) {
-                      let locations = response##locations;
-                      let locations =
-                        Array.map
-                          (
-                            fun loc => {
-                              let locStart = {
-                                "line": loc##locStart##posLnum - 1,
-                                "ch":
-                                  loc##locStart##posCnum - loc##locStart##posBol
-                              };
-                              let locEnd = {
-                                "line": loc##locEnd##posLnum - 1,
-                                "ch":
-                                  loc##locEnd##posCnum - loc##locEnd##posBol
-                              };
-                              {locStart, locEnd}
-                            }
-                          )
-                          locations;
-                      update codeMirrorAction (highlightLocations locations);
-                      update console (Error, response##message)
+                      showErrors ()
                     };
                     JsPromise.resolve ()
                   }
@@ -328,7 +329,7 @@ module Gist = {
             )
         )
       } else {
-        update console (Error, response##message)
+        showErrors ()
       }
     | "NoSyntaxErrors" => update console (Executable, "")
     | _ => failwith "Not handled"

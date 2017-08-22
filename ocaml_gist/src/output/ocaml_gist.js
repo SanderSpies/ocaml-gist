@@ -359,42 +359,42 @@
 	  if (exit === 1) {
 	    var msg = response.message;
 	    var $$switch = +unboundRegexp.test(msg);
+	    var showErrors = function () {
+	      var locations = response.locations;
+	      var locations$1 = $$Array.map((function (loc) {
+	              var locStart = {
+	                line: loc.locStart.posLnum - 1 | 0,
+	                ch: loc.locStart.posCnum - loc.locStart.posBol | 0
+	              };
+	              var locEnd = {
+	                line: loc.locEnd.posLnum - 1 | 0,
+	                ch: loc.locEnd.posCnum - loc.locEnd.posBol | 0
+	              };
+	              return /* record */[
+	                      /* locStart */locStart,
+	                      /* locEnd */locEnd
+	                    ];
+	            }), locations);
+	      Curry._2(update, codeMirrorAction, (function (param) {
+	              return highlightLocations(locations$1, param);
+	            }));
+	      return Curry._2(update, $$console, /* tuple */[
+	                  /* Error */1,
+	                  response.message
+	                ]);
+	    };
 	    if ($$switch) {
 	      Curry._2(update, codeMirrorAction, (function (editor) {
 	              autocompleteSuggestions(editor).then((function (res) {
 	                      if (!res.suggestions.length) {
-	                        var locations = response.locations;
-	                        var locations$1 = $$Array.map((function (loc) {
-	                                var locStart = {
-	                                  line: loc.locStart.posLnum - 1 | 0,
-	                                  ch: loc.locStart.posCnum - loc.locStart.posBol | 0
-	                                };
-	                                var locEnd = {
-	                                  line: loc.locEnd.posLnum - 1 | 0,
-	                                  ch: loc.locEnd.posCnum - loc.locEnd.posBol | 0
-	                                };
-	                                return /* record */[
-	                                        /* locStart */locStart,
-	                                        /* locEnd */locEnd
-	                                      ];
-	                              }), locations);
-	                        Curry._2(update, codeMirrorAction, (function (param) {
-	                                return highlightLocations(locations$1, param);
-	                              }));
-	                        Curry._2(update, $$console, /* tuple */[
-	                              /* Error */1,
-	                              response.message
-	                            ]);
+	                        showErrors(/* () */0);
 	                      }
 	                      return Promise.resolve(/* () */0);
 	                    }));
 	              return /* () */0;
 	            }));
 	    } else {
-	      Curry._2(update, $$console, /* tuple */[
-	            /* Error */1,
-	            response.message
-	          ]);
+	      showErrors(/* () */0);
 	    }
 	  }
 	  return Promise.resolve(response);

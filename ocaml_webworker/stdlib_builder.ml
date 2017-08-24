@@ -10,7 +10,7 @@ let () = (
     Unix.mkdir "cmtis" 0o755;
   let compiler_libs_location = Findlib.package_directory "compiler-libs" in
   let ocaml_stdlib_folder = Filename.dirname compiler_libs_location in
-  let all_cmtis = List.filter (fun file_name -> Filename.extension file_name = ".cmti") (Array.to_list (Sys.readdir ocaml_stdlib_folder)) in
+  let all_cmtis = List.filter (fun file_name -> Filename.check_suffix file_name ".cmti") (Array.to_list (Sys.readdir ocaml_stdlib_folder)) in
   List.iter (fun pkg -> execute ["cp"; ocaml_stdlib_folder ^ Filename.dir_sep ^ pkg; "./cmtis/" ^ Filename.chop_extension pkg ^ ".cmi"]) all_cmtis;
   List.iter (fun pkg -> execute ["jsoo_mkcmis"; "-prefix"; "/cmis"; "./cmtis/" ^ Filename.chop_extension pkg ^ ".cmi"]) all_cmtis;
   List.iter (fun pkg -> execute ["cat"; "./cmtis/" ^ Filename.chop_extension pkg ^ ".cmi.cmis.js"; ">>"; "./stdlib.js"; ]) all_cmtis;

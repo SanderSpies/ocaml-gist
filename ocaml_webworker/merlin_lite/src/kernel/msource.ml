@@ -129,6 +129,7 @@ module Trace2 = struct
 
   let ikfprintf =
     let open Printf in
+    let open Printf_compat in
     ikfprintf
 
   type t = {

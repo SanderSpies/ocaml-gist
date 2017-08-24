@@ -623,7 +623,7 @@ let rec lookup ctxt ident env =
           raise (Found (path, tag `Modtype path, Location.symbol_gloc ()))
         | `Type ->
           log "lookup" "lookup in type namespace" ;
-          let path = Env.lookup_type ident env in
+          let path = Env_compat.lookup_type ident env in
           let typ_decl = Env.find_type path env in
           raise (Found (path, tag `Type path, typ_decl.Types.type_loc))
         | `Vals ->

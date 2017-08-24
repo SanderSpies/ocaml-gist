@@ -30,12 +30,12 @@
 
 (rule
  ((targets (browse_raw.ml))
-  (deps    (merlin_lite/src/ocaml/typer_404/browse_raw.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/browse_raw.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (raw_compat.ml))
-  (deps    (merlin_lite/src/ocaml/typer_404/raw_compat.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/raw_compat.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
@@ -45,17 +45,23 @@
 
 (rule
  ((targets (saved_parts.mli))
-  (deps    (merlin_lite/src/ocaml/typer_404/saved_parts.mli))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/saved_parts.mli))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (saved_parts.ml))
-  (deps    (merlin_lite/src/ocaml/typer_404/saved_parts.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/saved_parts.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (pprintast2.ml))
-  (deps    (merlin_lite/src/ocaml/typer_404/parsing/pprintast2.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/parsing/pprintast2.ml))
+  (action  (copy ${<} ${@}))))
+
+
+(rule
+ ((targets (builtin_attributes.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/parsing/builtin_attributes.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
@@ -113,27 +119,37 @@
 
 (rule
  ((targets (tail_analysis.ml))
-  (deps    (merlin_lite/src/ocaml/typer_404/tail_analysis.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/tail_analysis.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (tast_helper.ml))
-  (deps    (merlin_lite/src/ocaml/typer_404/typing/tast_helper.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/typing/tast_helper.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (untypeast2.ml))
-  (deps    (merlin_lite/src/ocaml/typer_404/typing/untypeast2.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/typing/untypeast2.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (parmatch2.ml))
-  (deps    (merlin_lite/src/ocaml/typer_404/typing/parmatch2.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/typing/parmatch2.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (longident2.ml))
-  (deps    (merlin_lite/src/ocaml/typer_404/parsing/longident2.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/parsing/longident2.ml))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (printf_compat.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/printf_compat.ml))
+  (action  (copy ${<} ${@}))))
+
+(rule
+ ((targets (env_compat.ml))
+  (deps    (merlin_lite/src/ocaml/typer_${ocaml_version}/env_compat.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
@@ -197,19 +213,26 @@
   (action  (copy ${<} ${@}))))
 
 (rule
- ((targets (code_execution_webworker.ml))
-  (deps    (src/code_execution_webworker.ml))
+ ((targets (string_compat.ml))
+  (deps    (compat/${ocaml_version}/string_compat.ml))
   (action  (copy ${<} ${@}))))
 
 (rule
- ((targets (gist_tool.ml))
-  (deps    (src/gist_tool.ml))
+ ((targets (syntaxerr_compat.ml))
+  (deps    (compat/${ocaml_version}/syntaxerr_compat.ml))
   (action  (copy ${<} ${@}))))
+
+
+(rule
+ ((targets (extend_helper.ml))
+  (deps    (merlin_lite/src/extend/extend_helper.ml))
+  (action  (copy ${<} ${@}))))
+
 
 (library (
   (name ocaml_webworker)
   (public_name ocaml-webworker)
-  (libraries (js_of_ocaml-compiler js_of_ocaml js_of_ocaml-toplevel compiler-libs yojson str unix))
+  (libraries (js_of_ocaml-compiler js_of_ocaml js_of_ocaml-toplevel compiler-libs yojson str unix compiler-libs.common))
   (modules (std
             extend_protocol
             sturgeon_stub
@@ -221,11 +244,14 @@
             location_aux
             saved_parts
             pprintast2
+            extend_helper
+            builtin_attributes
             msupport
             path_aux
             mbrowse
             marg
             ppxsetup
+            printf_compat
             msource
             mconfig
             mreader
@@ -238,6 +264,7 @@
             longident2
             browse_tree
             browse_misc
+            env_compat
             type_utils
             expansion
             completion
@@ -248,6 +275,8 @@
             typedtrie
             misc2
             track_definition
+            string_compat
+            syntaxerr_compat
             code_execution_webworker
             ))
   (preprocess (pps (js_of_ocaml-ppx)))
@@ -257,7 +286,7 @@
   (targets (ocaml_webworker.js))
   (deps (ocaml_webworker.cma))
   (action (progn
-    (system "${bin:jsoo_mktop} -package str -package unix -jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js  ocaml_webworker.cma -o ocaml_webworker.js")
+    (system "${bin:jsoo_mktop} -package compiler-libs.common -package str -package unix -jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js ocaml_webworker.cma -o ocaml_webworker.js")
   ))
 ))
 
@@ -267,6 +296,17 @@
   (public_name og-stdlib)
   (libraries (findlib js_of_ocaml unix))
   (modules (stdlib_builder))
+))
+
+(rule (
+  (targets (bs_webworker.js))
+  (deps (ocaml_webworker.cma polyfill.js))
+  (action
+    (progn
+      (system "OCAMLFIND_COMMANDS='ocamlc=bsc' ${bin:jsoo_mktop} -package str -package unix -jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js  ocaml_webworker.cma -o ocaml_webworker.js")
+
+
+  ))
 ))
 
 (install (

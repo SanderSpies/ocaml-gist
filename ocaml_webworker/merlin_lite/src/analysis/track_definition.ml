@@ -428,7 +428,7 @@ and from_path ~config path =
     end
   | (fname, `Mod) :: modules ->
     begin try
-      let cmt_file = "/cmis/" ^  (String.lowercase fname) ^ ".cmi" in
+      let cmt_file = "/static/cmis/" ^  (String.lowercase fname) ^ ".cmi" in
       browse_cmts ~config ~root:cmt_file modules
     with File.Not_found (File.CMT fname | File.CMTI fname) as exn ->
       restore_loadpath (fun () ->
@@ -853,3 +853,4 @@ let get_doc ~config ~env ~local_defs ~comments ~pos =
   | `File_not_found _
   | `Not_found _
   | `Not_in_env _ as otherwise -> otherwise
+  | _ -> `No_documentation

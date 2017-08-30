@@ -1,6 +1,4 @@
-Worker.import_scripts ["stdlib.js"; ];;
-
-(* let foo = Reason_toolchain.JS.canonical_implementation_with_comments;; *)
+Worker.import_scripts ["stdlib.cmis.js"; "fs.js"; "cmi.js"];;
 
 let err s = (
   Firebug.console##error (Js.string s)
@@ -19,9 +17,9 @@ let type_code code = (
     JsooTop.initialize ();
     let env = !Toploop.toplevel_env in
     Env.reset_cache ();
-    let all_cmis = Array.to_list (Sys.readdir "/cmis/") in
+    (* lookup modules to enable autocomplete *)
+    let all_cmis = Array.to_list (Sys.readdir "/static/cmis/") in
     List.iter (fun cmi -> (
-      print_endline ("CMI:" ^ cmi);
       let cmi_name = String_compat.capitalize_ascii (Filename.chop_suffix cmi ".cmi") in
       try
         let _ = Env.lookup_module ~load:true (Lident cmi_name) env in
@@ -78,10 +76,6 @@ let type_code code = (
       )
 ))
 
-
-
-
-
 let print o formatter = Extend_protocol.Reader.(
   match o with
   | Out_value out_value -> !Oprint.out_value formatter out_value
@@ -130,6 +124,7 @@ let autocomplete (pos:Lexing.position) str = (
 let comments = []
 
 let documentation pos str = (
+  try (
   match !latest_env, !latest_typed_structure with
   | Some latest_env, Some latest_typed_structure -> (
     let result = Track_definition.get_doc ~env:latest_env ~local_defs:(`Implementation latest_typed_structure) ~pos ~comments ~config:Mconfig.initial (`User_input str) in
@@ -137,6 +132,9 @@ let documentation pos str = (
     | `Found str -> Some str
     | _ -> None )
   | _ -> None )
+   with
+  | _ -> None
+)
 
 let execute_code code = (
   let markLocations = ref [] in
@@ -152,6 +150,7 @@ let execute_code code = (
   Sys_js.set_channel_flusher stderr (Buffer.add_string stderr_buffer);
   JsooTop.initialize ();
   let answer_buffer = Buffer.create 100 in
+  Topdirs.dir_load Format.std_formatter "foo.cma";
   JsooTop.execute true ~highlight_location (Format.formatter_of_buffer answer_buffer)  (code ^ ";;");
   let error = String.trim (Buffer.to_bytes stderr_buffer) in
   let output = String.trim (Buffer.to_bytes stdout_buffer) in
@@ -165,11 +164,10 @@ let execute_code code = (
 )
 ;;
 
-(* Env.Persistent_signature.load := (fun ~unit_name ->
+Env.Persistent_signature.load := (fun ~unit_name ->
   (
-    print_endline "Calling Env.Persistent_signature.load...";
     try (
-      let cmi_infos2 = Cmt_format.read ("/cmis/" ^ (String.lowercase_ascii unit_name) ^ ".cmi") in
+      let cmi_infos2 = Cmt_format.read ("/static/cmis/" ^ (String.uncapitalize_ascii unit_name) ^ ".cmi") in
       match cmi_infos2 with
       | (Some cmi_infos, _) -> (
         Some {
@@ -182,7 +180,7 @@ let execute_code code = (
     with
     | _ -> None
   )
-);; *)
+);;
 
 Worker.set_onmessage (fun code ->
   (Js.Opt.case code##.msgType)

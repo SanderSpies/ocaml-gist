@@ -3,10 +3,10 @@
    (deps    (merlin_lite/src/utils/std.ml))
    (action  (copy ${<} ${@}))))
 
-  (rule
-   ((targets (extend_protocol.ml))
-    (deps    (merlin_lite/src/extend/extend_protocol.ml))
-    (action  (copy ${<} ${@}))))
+(rule
+ ((targets (extend_protocol.ml))
+  (deps    (merlin_lite/src/extend/extend_protocol.ml))
+  (action  (copy ${<} ${@}))))
 
 (rule
  ((targets (sturgeon_stub.ml))
@@ -104,18 +104,15 @@
   (deps    (merlin_lite/src/kernel/mreader.ml))
   (action  (copy ${<} ${@}))))
 
-
 (rule
  ((targets (query_protocol.ml))
   (deps    (merlin_lite/src/frontend/query_protocol.ml))
   (action  (copy ${<} ${@}))))
 
-
 (rule
  ((targets (query_json.ml))
   (deps    (merlin_lite/src/frontend/query_json.ml))
   (action  (copy ${<} ${@}))))
-
 
 (rule
  ((targets (tail_analysis.ml))
@@ -222,17 +219,22 @@
   (deps    (compat/${ocaml_version}/syntaxerr_compat.ml))
   (action  (copy ${<} ${@}))))
 
-
 (rule
  ((targets (extend_helper.ml))
   (deps    (merlin_lite/src/extend/extend_helper.ml))
   (action  (copy ${<} ${@}))))
 
-
 (library (
   (name ocaml_webworker)
-  (public_name ocaml-webworker)
-  (libraries (js_of_ocaml-compiler js_of_ocaml js_of_ocaml-toplevel compiler-libs yojson str unix compiler-libs.common))
+  (libraries (js_of_ocaml-compiler
+              js_of_ocaml
+              js_of_ocaml-toplevel
+              compiler-libs
+              yojson
+              str
+              unix
+              dynlink
+              compiler-libs.common))
   (modules (std
             extend_protocol
             sturgeon_stub
@@ -283,34 +285,25 @@
 ))
 
 (rule (
-  (targets (ocaml_webworker.js))
+  (targets (ocaml_webworker.js stdlib.cmis.js))
   (deps (ocaml_webworker.cma))
   (action (progn
-    (system "${bin:jsoo_mktop} -package compiler-libs.common -package str -package unix -jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js ocaml_webworker.cma -o ocaml_webworker.js")
-  ))
-))
-
-(executable (
-  (name stdlib_builder)
-  (package ocaml-webworker)
-  (public_name og-stdlib)
-  (libraries (findlib js_of_ocaml unix))
-  (modules (stdlib_builder))
-))
-
-(rule (
-  (targets (bs_webworker.js))
-  (deps (ocaml_webworker.cma polyfill.js))
-  (action
-    (progn
-      (system "OCAMLFIND_COMMANDS='ocamlc=bsc' ${bin:jsoo_mktop} -package str -package unix -jsopt +weak.js -jsopt +toplevel.js -jsopt +dynlink.js -jsopt +nat.js  ocaml_webworker.cma -o ocaml_webworker.js")
-
-
+    (run ${bin:jsoo_mktop}
+         -jsopt --extern-fs
+         -package str
+         -package unix
+         -jsopt +weak.js
+         -jsopt +toplevel.js
+         -jsopt +dynlink.js
+         -jsopt +nat.js
+         ocaml_webworker.cma
+         -o ocaml_webworker.js)
   ))
 ))
 
 (install (
   (section bin)
   (package ocaml-webworker)
-  (files (ocaml_webworker.js))
+  (files (ocaml_webworker.js
+          stdlib.cmis.js))
 ))

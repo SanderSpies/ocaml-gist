@@ -1,0 +1,81 @@
+(rule (
+  (targets (fs.js))
+  (deps (foo.cma))
+  (action (progn
+    (system "${bin:js_of_ocaml} --file foo.cma --extern-fs -I . --ofs=fs.js foo.cma")
+    (system "${bin:jsoo_mkcmis} foo.cmi -o cmi.js")
+  ))
+))
+
+(library (
+  (name foo)
+  (modules foo)
+
+))
+
+(rule (
+  (targets (ocaml_gist.js))
+  (deps (
+    ../ocaml_gist/ocaml_gist.js
+  ))
+  (action  (system "cp ../ocaml_gist/src/output/ocaml_gist.js ."))
+))
+
+(rule (
+  (targets (index.html))
+  (deps (
+    ../ocaml_gist/index.html
+  ))
+  (action  (copy ${<} ${@}))
+))
+
+(rule (
+  (targets (error.svg))
+  (deps (
+    ../ocaml_gist/error.svg
+  ))
+  (action  (copy ${<} ${@}))
+))
+
+(rule (
+  (targets (execute.svg))
+  (deps (
+    ../ocaml_gist/execute.svg
+  ))
+  (action  (copy ${<} ${@}))
+))
+
+(rule (
+  (targets (codemirror.css))
+  (deps (
+    ../ocaml_gist/codemirror.css
+  ))
+  (action  (copy ${<} ${@}))
+))
+
+
+(rule (
+  (targets (stdlib.cmis.js))
+  (deps (
+    ../ocaml_webworker/stdlib.cmis.js
+  ))
+  (action  (copy ${<} ${@}))
+))
+
+
+(rule (
+  (targets (ocaml_webworker.js))
+  (deps (
+    ../ocaml_webworker/ocaml_webworker.js
+  ))
+  (action  (copy ${<} ${@}))
+))
+
+(alias (
+  (name runtest)
+  (deps (ocaml_gist.js index.html stdlib.cmis.js error.svg execute.svg codemirror.css fs.js ocaml_webworker.js))
+  (action (progn
+    (system "ls -l")
+    (system "python -m SimpleHTTPServer")
+  ))
+))

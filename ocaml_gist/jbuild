@@ -47,56 +47,33 @@
  ((targets (ocaml_gist.js))
  (deps (bsconfig.json
         package.json
-        webpack.config.js))
+        webpack.config.js
+        gist_tool.re
+        ocaml.js
+        active-line.js
+        show-hint.js
+  ))
  (action (progn
-   (echo "Running npm install (this will take awhile...)")
+   (echo "Running npm install (this will take awhile)")
    (system "npm install")
    (echo "Running BuckleScript commands \n")
-   (system "bsb -clean-world")
-   (system "bsb -make-world")
-   (system "bsb")
-   (system "webpack")
+   (system "npm run clean")
+   (system "npm run make-world")
+   (system "ls -l")
+   (system "ls -l lib")
+   (system "npm run webpack")
    (echo "webpack DONE")
    (system "touch ./ocaml_gist.js")
  ))
 ))
 
-(rule
- ((targets (ocaml_webworker.js))
-  (action (progn
-    (copy ${bin:ocaml_webworker.js} ${@})
-    (system "cp ${bin:ocaml_webworker.js} ./src/ocaml_webworker.js")
-  ))
-))
-
-(rule (
-  (targets (stdlib.js))
-  (action (progn
-    (run ${bin:og-stdlib})
-    (system "cp ./stdlib.js ./src/stdlib.js")
-  ))
-))
-
-(alias (
-  (name install)
+(install (
   (package ocaml-gist)
-  (deps (ocaml_gist.js
-         gist_tool.re
+  (section lib)
+  (files (
+         (./src/ocaml_gist.js as ocaml_gist.js)
          index.html
-         active-line.js
-         ocaml_webworker.js
          codemirror.css
-         codemirror.js
-         ocaml.js
          error.svg
-         stdlib.js
-         execute.svg
-         show-hint.js))
-))
-
-(alias (
-  (name runtest)
-  (package ocaml-gist)
-  (deps ((alias install)))
-  (action (system "cd src/ && python -m SimpleHTTPServer"))
+         execute.svg))
 ))

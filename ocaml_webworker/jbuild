@@ -301,6 +301,14 @@
   ))
 ))
 
+(executable (
+  (name stdlib_builder)
+  (package ocaml-webworker)
+  (public_name og-stdlib)
+  (libraries (findlib js_of_ocaml unix))
+  (modules (stdlib_builder))
+))
+
 (install (
   (section bin)
   (package ocaml-webworker)

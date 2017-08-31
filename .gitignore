@@ -8,3 +8,4 @@ build
 *.cmo
 .DS_store
 stdlib_builder
+.merlin

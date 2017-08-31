@@ -54,14 +54,13 @@
 ))
 
 
+
 (rule (
   (targets (stdlib.cmis.js))
-  (deps (
-    ../ocaml_webworker/stdlib.cmis.js
+  (action (progn
+    (run ${bin:og-stdlib})
   ))
-  (action  (copy ${<} ${@}))
 ))
-
 
 (rule (
   (targets (ocaml_webworker.js))

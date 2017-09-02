@@ -12,7 +12,7 @@ module.exports = {
     ocaml_gist: './lib/js/src/gist_tool.js',
   },
   output: {
-    path: path.join(__dirname, "./src/output"),
+    path: path.join(__dirname, "./"),
     filename: '[name].js',
   },
 };

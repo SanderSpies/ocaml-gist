@@ -1,3 +1,8 @@
+(library (
+  (name foo)
+  (modules foo)
+))
+
 (rule (
   (targets (fs.js))
   (deps (foo.cma))
@@ -5,12 +10,6 @@
     (system "${bin:js_of_ocaml} --file foo.cma --extern-fs -I . --ofs=fs.js foo.cma")
     (system "${bin:jsoo_mkcmis} foo.cmi -o cmi.js")
   ))
-))
-
-(library (
-  (name foo)
-  (modules foo)
-
 ))
 
 (rule (
@@ -53,8 +52,6 @@
   (action  (copy ${<} ${@}))
 ))
 
-
-
 (rule (
   (targets (stdlib.cmis.js))
   (action (progn
@@ -71,8 +68,15 @@
 ))
 
 (alias (
+  (name gist)
+  (action (progn
+    (run ${bin:og-create} --output examples -l foo1.cma -l foo2.cma)
+  ))
+))
+
+(alias (
   (name runtest)
-  (deps (ocaml_gist.js index.html stdlib.cmis.js error.svg execute.svg codemirror.css fs.js ocaml_webworker.js))
+  (deps ((alias gist) index.html stdlib.cmis.js error.svg execute.svg codemirror.css fs.js ocaml_webworker.js))
   (action (progn
     (system "ls -l")
     (system "python -m SimpleHTTPServer")

@@ -1,4 +1,5 @@
 opam-version: "1.2"
+version: "0.0.1"
 maintainer: "sandermail@gmail.com"
 authors: [
   "Sander Spies"
@@ -11,11 +12,11 @@ build: [
   ["jbuilder" "build" "-p" name "-j" jobs]
 ]
 depends: [
-  "findlib"
-  "js_of_ocaml" { >= "3.0.0" }
-  "js_of_ocaml-compiler" { >= "3.0.0" }
+  "ocamlfind"
+  "js_of_ocaml" { dev }
+  "js_of_ocaml-compiler" { dev }
   "js_of_ocaml-toplevel"
   "yojson"
-  "str"
+  "cmdliner"
 ]
-available: [ocaml-version = "4.04.1"]
+available: [ocaml-version >= "4.04.1"]

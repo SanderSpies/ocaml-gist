@@ -63,7 +63,6 @@
    (system "ls -l lib")
    (system "npm run webpack")
    (echo "webpack DONE")
-   (system "touch ./ocaml_gist.js")
  ))
 ))
 
@@ -71,9 +70,19 @@
   (package ocaml-gist)
   (section lib)
   (files (
-         (./src/ocaml_gist.js as ocaml_gist.js)
+         ocaml_gist.js
          index.html
          codemirror.css
          error.svg
          execute.svg))
+))
+
+(executable (
+  (name create)
+  (package ocaml-gist)
+  (libraries (cmdliner findlib unix))
+  (public_name og-create)
+  (modules (
+    create
+  ))
 ))

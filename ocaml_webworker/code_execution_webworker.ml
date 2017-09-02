@@ -8,6 +8,24 @@ let (latest_typed_structure:Typedtree.structure option ref) = ref None;;
 let (latest_typed_signature:Types.signature_item list option ref) = ref None;;
 let (latest_env:Env.t option ref) = ref None;;
 
+let load_cmis () =
+  let env = !Toploop.toplevel_env in
+  let cmis = Array.to_list (Sys.readdir "/static/cmis/") in
+  List.iter (fun cmi -> (
+    let cmi_name = String_compat.capitalize_ascii (Filename.chop_suffix cmi ".cmi") in
+    try
+      let _ = Env.lookup_module ~load:true (Lident cmi_name) env in
+      ()
+    with
+    | _ -> () (* ignore the errors here for now *);
+  )) cmis
+
+let load_cmos () =
+  let all_cmos = Array.to_list (Sys.readdir "/static/") in
+  let all_cmos = List.filter (fun f -> not (Sys.is_directory f)) all_cmos in
+  List.iter (Topdirs.dir_load Format.std_formatter) all_cmos
+
+
 let type_code code = (
   let lexbuf = Lexing.from_string code in
   let stderr_buffer = Buffer.create 100 in
@@ -17,16 +35,9 @@ let type_code code = (
     JsooTop.initialize ();
     let env = !Toploop.toplevel_env in
     Env.reset_cache ();
-    (* lookup modules to enable autocomplete *)
-    let all_cmis = Array.to_list (Sys.readdir "/static/cmis/") in
-    List.iter (fun cmi -> (
-      let cmi_name = String_compat.capitalize_ascii (Filename.chop_suffix cmi ".cmi") in
-      try
-        let _ = Env.lookup_module ~load:true (Lident cmi_name) env in
-        ()
-      with
-      | _ -> () (* ignore the errors here for now *);
-    )) all_cmis;
+    load_cmis ();
+    load_cmos ();
+
     let (typed_structure, typed_signature, env) = Typemod.type_structure env structure Location.none in
     latest_typed_structure := Some typed_structure;
     latest_typed_signature := Some typed_signature;
@@ -150,7 +161,7 @@ let execute_code code = (
   Sys_js.set_channel_flusher stderr (Buffer.add_string stderr_buffer);
   JsooTop.initialize ();
   let answer_buffer = Buffer.create 100 in
-  Topdirs.dir_load Format.std_formatter "foo.cma";
+
   JsooTop.execute true ~highlight_location (Format.formatter_of_buffer answer_buffer)  (code ^ ";;");
   let error = String.trim (Buffer.to_bytes stderr_buffer) in
   let output = String.trim (Buffer.to_bytes stdout_buffer) in

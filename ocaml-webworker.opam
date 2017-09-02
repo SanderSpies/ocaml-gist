@@ -3,6 +3,7 @@ maintainer: "sandermail@gmail.com"
 authors: [
   "Sander Spies"
 ]
+version: "0.0.1"
 homepage: "https://github.com/SanderSpies/ocaml-gist"
 bug-reports: "https://github.com/SanderSpies/ocaml-gist/issues"
 license: "MIT"
@@ -12,11 +13,10 @@ build: [
 ]
 depends: [
   "jbuilder" {build & >= "1.0+beta10"}
-  "findlib"
-  "js_of_ocaml" { >= "3.0.0" }
-  "js_of_ocaml-compiler" { >= "3.0.0" }
+  "ocamlfind"
+  "js_of_ocaml" { dev }
+  "js_of_ocaml-compiler" { dev }
   "js_of_ocaml-toplevel"
   "yojson"
-  "str"
 ]
-available: [ocaml-version = "4.04.1"]
+available: [ocaml-version >= "4.04.1"]

@@ -285,11 +285,12 @@
 ))
 
 (rule (
-  (targets (ocaml_webworker.js stdlib.cmis.js))
+  (targets (ocaml_webworker.js))
   (deps (ocaml_webworker.cma))
   (action (progn
     (run ${bin:jsoo_mktop}
          -jsopt --extern-fs
+         -nocmis
          -package str
          -package unix
          -jsopt +weak.js
@@ -301,6 +302,12 @@
   ))
 ))
 
+(rule (
+  (targets (stdlib.cmis.js))
+  (deps (stdlib_builder.exe))
+  (action (run stdlib_builder.exe))
+))
+
 (executable (
   (name stdlib_builder)
   (package ocaml-webworker)
@@ -310,7 +317,7 @@
 ))
 
 (install (
-  (section bin)
+  (section lib)
   (package ocaml-webworker)
   (files (ocaml_webworker.js
           stdlib.cmis.js))

@@ -290,7 +290,6 @@
   (action (progn
     (run ${bin:jsoo_mktop}
          -jsopt --extern-fs
-         -nocmis
          -package str
          -package unix
          -jsopt +weak.js

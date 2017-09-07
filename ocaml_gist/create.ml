@@ -28,7 +28,7 @@ let file_copy input_name output_name =
 try
   let owl = Findlib.package_directory "ocaml-webworker" in
   let og = Findlib.package_directory "ocaml-gist" in
-  let output = Cmdliner.(
+  let (output, deps) = Cmdliner.(
     let output =
       let doc = "Output folder" in
       Arg.(value & opt string "." & info ["output"; "o"]  ~doc)
@@ -45,27 +45,35 @@ try
       let doc = "Libraries" in
       Arg.(value & opt_all string [] & info ["library"; "l"]  ~doc)
     in
-    let x = ref None in
-    let exec output input deps libs = ( x := Some output; ) in
+    let out = ref None in
+    let dependencies = ref [] in
+    let exec output input deps libs = (
+      out := Some output;
+      dependencies := deps;
+    ) in
     let t = Term.(const exec $ output $ input $ deps $ libs) in
     Term.eval (t, Term.info "og-create");
-    let output = match !x with
+    let output = match !out with
     | Some output -> Filename.(concat current_dir_name output)
     | None -> Filename.current_dir_name
     in
-    output
+    (output, !dependencies)
   ) in
   let owl_files = all_files_but_opams owl in
   let og_files = all_files_but_opams og in
 
+  if Sys.file_exists output = false then
+    Unix.mkdir output 0o755;
 
   (* copy the files to the output *)
+  List.iter (fun file -> file_copy (Filename.concat owl file) (Filename.concat output file)) owl_files;
+  List.iter (fun file -> file_copy (Filename.concat og file) (Filename.concat output file)) og_files;
 
-
-  print_endline output;
-
-
-
-
+  let fs_files = List.fold_left (fun deps acc -> deps ^ "--file " ^ acc) "" deps in
+  let cmi_files = List.map (fun file -> Filename.chop_extension file ^ ".cmi") deps in
+  execute ["js_of_ocaml";fs_files;"--extern-fs";"-I";".";"--ofs=fs.js";List.hd deps;];
+  execute (["jsoo_mkcmis"] @ cmi_files @ ["-o";"cmi.js"]);
+  file_copy "./fs.js" (Filename.concat output "fs.js");
+  file_copy "./cmi.js" (Filename.concat output "cmi.js");
 with
 | Findlib.No_such_package (p, msg) -> print_endline (p ^ ":" ^ msg)

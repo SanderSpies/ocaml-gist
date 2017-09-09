@@ -1,4 +1,4 @@
-Worker.import_scripts ["stdlib.cmis.js"; "fs.js"; "cmi.js"];;
+Worker.import_scripts ["stdlib.cmis.js"; "cmi.js"];;
 
 let err s = (
   Firebug.console##error (Js.string s)
@@ -24,7 +24,6 @@ let load_cmos () =
   let all_cmos = Array.to_list (Sys.readdir "/static/") in
   let all_cmos = List.filter (fun f -> not (Sys.is_directory f)) all_cmos in
   List.iter (Topdirs.dir_load Format.std_formatter) all_cmos
-
 
 let type_code code = (
   let lexbuf = Lexing.from_string code in

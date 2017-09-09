@@ -226,6 +226,7 @@
 
 (library (
   (name ocaml_webworker)
+  (public_name ocaml-webworker)
   (libraries (js_of_ocaml-compiler
               js_of_ocaml
               js_of_ocaml-toplevel
@@ -233,7 +234,6 @@
               yojson
               str
               unix
-              dynlink
               compiler-libs.common))
   (modules (std
             extend_protocol
@@ -284,29 +284,6 @@
   (preprocess (pps (js_of_ocaml-ppx)))
 ))
 
-(rule (
-  (targets (ocaml_webworker.js))
-  (deps (ocaml_webworker.cma))
-  (action (progn
-    (run ${bin:jsoo_mktop}
-         -jsopt --extern-fs
-         -package str
-         -package unix
-         -jsopt +weak.js
-         -jsopt +toplevel.js
-         -jsopt +dynlink.js
-         -jsopt +nat.js
-         ocaml_webworker.cma
-         -o ocaml_webworker.js)
-  ))
-))
-
-(rule (
-  (targets (stdlib.cmis.js))
-  (deps (stdlib_builder.exe))
-  (action (run stdlib_builder.exe))
-))
-
 (executable (
   (name stdlib_builder)
   (package ocaml-webworker)
@@ -315,9 +292,17 @@
   (modules (stdlib_builder))
 ))
 
+
+(rule (
+  (targets (stdlib.cmis.js))
+  (deps (stdlib_builder.exe))
+  (action (progn
+    (run og-stdlib)
+  ))
+))
+
 (install (
   (section lib)
   (package ocaml-webworker)
-  (files (ocaml_webworker.js
-          stdlib.cmis.js))
+  (files (stdlib.cmis.js))
 ))

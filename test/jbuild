@@ -7,7 +7,7 @@
   (name runtest)
   (deps (foo.cma))
   (action (progn
-    (run ${bin:og-create} --input examples --output output --dependency foo.cma)
+    (run ${bin:og-create} --input examples --output output --dependency foo.cma --lib base)
     (system "cd output && python -m SimpleHTTPServer")
   ))
 ))

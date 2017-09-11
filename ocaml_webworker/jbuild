@@ -233,8 +233,7 @@
               compiler-libs
               yojson
               str
-              unix
-              compiler-libs.common))
+              unix))
   (modules (std
             extend_protocol
             sturgeon_stub

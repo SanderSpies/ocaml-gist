@@ -7,7 +7,19 @@
   (name runtest)
   (deps (foo.cma))
   (action (progn
-    (run ${bin:og-create} --input examples --output output --dependency foo.cma --lib base)
+    (run og-create
+         --input examples
+         --output output
+         --dependency foo.cma
+         --lib +base/runtime.js
+         --lib base
+         --lib stdio
+         --lib core_kernel
+         --lib +core_kernel/runtime.js
+         --lib +core_kernel/strftime.js
+         --lib +bin_prot/runtime.js
+         --lib +ppx_expect/runtime.js
+    )
     (system "cd output && python -m SimpleHTTPServer")
   ))
 ))

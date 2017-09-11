@@ -9,7 +9,7 @@ let execute cmd =
   | _ -> failwith (Printf.sprintf "Error: %s" s)
 
 let buffer_size = 8192;;
-let buffer = String.create buffer_size;;
+let buffer = Bytes.create buffer_size;;
 
 let all_files_but_opams dir = (
   let all_files = Array.to_list (Sys.readdir dir) in
@@ -58,7 +58,7 @@ try
       libraries := libs;
     ) in
     let t = Term.(const exec $ output $ input $ deps $ libs) in
-    Term.eval (t, Term.info "og-create");
+    ignore(Term.eval (t, Term.info "og-create"));
     (!out, !input_, !dependencies, !libraries)
   ) in
   let owl_files = all_files_but_opams owl in
@@ -70,41 +70,43 @@ try
   (* copy the files to the output *)
   List.iter (fun file -> file_copy (Filename.concat owl file) (Filename.concat output file)) owl_files;
   List.iter (fun file -> file_copy (Filename.concat og file) (Filename.concat output file)) og_files;
-  execute ["ls -l output"];
-  (* copy the libraries to the current directory *)
-  (* let deps2 = List.map (fun file ->
-      (* let js_filename = Filename.chop_extension file ^ ".js" in *)
-      (* execute ["js_of_ocaml --pretty"; file]; *)
-      (* execute ["cat"; js_filename; ">>"; "fs.js"]; *)
-      file
-  ) deps in *)
 
-  List.iter (fun file ->
-    let package_directory = Findlib.package_directory file in
-    let cma_file = (Findlib.package_directory file) ^ Filename.dir_sep ^ file ^ ".cma" in
-    file_copy cma_file (Filename.concat Filename.current_dir_name (file ^ ".cma"));
+  (* packages that should be available in the gist tool *)
+  let export_packages = List.fold_left (fun deps acc -> (
+      deps ^
+      (if acc.[0] = '+' then
+        " -jsopt " ^ acc
+      else
+        " -export-package " ^ acc
+      )
+    )) "" libs in
 
-  ) libs;
-
-  let export_packages = List.fold_left (fun deps acc -> deps ^ " -export-package " ^ acc) "" libs in
-
+  (* local libraries that should be available in the gist tool*)
   let deps2 = List.fold_left (fun deps acc -> deps ^ "-jsopt \" -I . --file " ^ acc ^ "\"") "" deps in
 
+  (* create the actual webworker *)
   execute ([ "jsoo_mktop";
+            "-jsopt"; "\"--disable genprim\"";
+            (* "-g"; *)
+            (* "-jsopt"; "--source-map-inline"; *)
             "-package"; "str";
             "-package"; "unix";
-            "-jsopt";"--opt=3";
+            (* "-jsopt"; "--no-inline"; *)
+            (* "-jsopt"; "--pretty"; *)
+            (* "-jsopt"; "--debug-info"; *)
+            (* "-jsopt";"--opt=3"; *)
             "-jsopt"; "+weak.js";
             "-jsopt"; "+toplevel.js";
             "-jsopt"; "+nat.js";
             "-jsopt"; "+dynlink.js";
-            "-jsopt"; "+base/runtime.js";
             export_packages;
             deps2;
-            (Filename.concat output "ocaml_webworker.cma");
+            (Filename.concat owl "ocaml_webworker.cma");
             "-o";(Filename.concat output "ocaml_webworker.js");
           ]);
 
+  (* create the cmi files *)
+  (* TODO: use cmti files instead when available *)
   let cmi_files = List.map (fun file -> Filename.chop_extension file ^ ".cmi") deps in
   execute (["jsoo_mkcmis"] @ libs @ cmi_files @ ["-o";Filename.concat output "cmi.js"])
 with

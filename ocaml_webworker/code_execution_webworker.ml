@@ -25,6 +25,12 @@ let load_cmos () =
   let all_cmos = List.filter (fun f -> not (Sys.is_directory f)) all_cmos in
   List.iter (Topdirs.dir_load Format.std_formatter) all_cmos
 
+let () = (
+  JsooTop.initialize ();
+  load_cmis ();
+  load_cmos ();
+)
+
 let type_code code = (
   let lexbuf = Lexing.from_string code in
   let stderr_buffer = Buffer.create 100 in
@@ -33,10 +39,6 @@ let type_code code = (
     let structure = Parse.implementation lexbuf in
     JsooTop.initialize ();
     let env = !Toploop.toplevel_env in
-    Env.reset_cache ();
-    load_cmis ();
-    load_cmos ();
-
     let (typed_structure, typed_signature, env) = Typemod.type_structure env structure Location.none in
     latest_typed_structure := Some typed_structure;
     latest_typed_signature := Some typed_signature;
@@ -193,159 +195,123 @@ Env.Persistent_signature.load := (fun ~unit_name ->
 );;
 
 Worker.set_onmessage (fun code ->
-  (Js.Opt.case code##.msgType)
-    (fun () -> err "[OCaml-gist] The message body is expected to have a msgType field. ")
-    (fun msgType ->
-  let msgType = Js.to_string msgType in
-  match msgType with
-  | "type" -> (
-    let err = type_code (Js.to_string code##.code) in
-    match err with
-    | Some (m1, m2, locs, s) ->
-      let result = Array.of_list (List.map (fun {Location.loc_start; loc_end} ->
-        Js.Unsafe.obj [|
-          ("locStart",
-        Js.Unsafe.obj [|
-          ("posFname", Js.Unsafe.inject (Js.string loc_start.pos_fname));
-          ("posLnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_lnum)));
-          ("posBol", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_bol)));
-          ("posCnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_cnum)));
-        |]);
-        ("locEnd",
-        Js.Unsafe.obj [|
-          ("posFname", Js.Unsafe.inject (Js.string loc_end.pos_fname));
-          ("posLnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_lnum)));
-          ("posBol", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_bol)));
-          ("posCnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_cnum)));
-        |])
-        |]
-        )
-        locs)
-      in
-      Worker.post_message (Js.Unsafe.obj [|
-        ("msgId", code##.msgId);
-        ("msgType", Js.Unsafe.inject (Js.string m1));
-        ("subtype", Js.Unsafe.inject (Js.string m2));
-        ("locations", Js.Unsafe.inject (Js.array result));
-        ("message", Js.Unsafe.inject (Js.string (String.trim s)));
-      |])
-    | None ->
-      Worker.post_message (Js.Unsafe.obj [|
-        ("msgId", code##.msgId);
-        ("msgType", Js.Unsafe.inject (Js.string "NoSyntaxErrors"));
-        |])
-    )
-  | "execute" -> (
-      let (result, _) = execute_code (Js.to_string code##.code) in
-      Worker.post_message (Js.Unsafe.obj [|
-        ("msgId", code##.msgId);
-        ("msgType", Js.Unsafe.inject (Js.string "execute"));
-        ("result", Js.Unsafe.inject (Js.string result));
-      |])
-    )
-  | "complete_prefix" -> (
-      let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
-      let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
-      let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
-      let show_docs = true in
-      let pos_fname = Js.to_string code##.posFname in
-      let pos = Lexing.{
-        pos_fname;
-        pos_lnum;
-        pos_bol;
-        pos_cnum;
-      } in
-      let text = Js.to_string code##.text in
-      let result = autocomplete pos text in
-
-      match result with
-      | Some suggestions ->
-        let kind_to_string = function
-        |`Value -> "Value"
-        |`Constructor -> "Constructor"
-        |`Variant -> "Variant"
-        |`Label -> "Label"
-        |`Module -> "Module"
-        |`Modtype -> "Modtype"
-        |`Type -> "Type"
-        |`MethodCall -> "MethodCall"
-        in
-        let suggestions = Array.map (fun (name, kind, desc, info) ->
-          let doc = if show_docs then
-            let li = Longident.flatten (Longident.parse text) in
-            let name = (
-              if List.length li > 1 then
-                let li = List.rev (List.tl (List.rev li)) @ [name] in
-                String.concat "." li
-              else
-                ""
-            )
-            in
-              match documentation pos name with
-              | Some s -> s
-              | _ -> ""
-          else
-            ""
-          in
+    (Js.Opt.case code##.msgType)
+      (fun () -> err "[OCaml-gist] The message body is expected to have a msgType field. ")
+      (fun msgType ->
+    let msgType = Js.to_string msgType in
+    match msgType with
+    | "type" -> (
+      let err = type_code (Js.to_string code##.code) in
+      match err with
+      | Some (m1, m2, locs, s) ->
+        let result = Array.of_list (List.map (fun {Location.loc_start; loc_end} ->
           Js.Unsafe.obj [|
-            ("name", Js.Unsafe.inject (Js.string name));
-            ("kind", Js.Unsafe.inject (Js.string (kind_to_string kind)));
-            ("doc", Js.Unsafe.inject (Js.string doc));
-            ("desc", Js.Unsafe.inject (Js.string desc));
-            (* ("desc", desc); *)
-            (* ("info", Js.Unsafe.inject (Js.string info)); *)
+            ("locStart",
+          Js.Unsafe.obj [|
+            ("posFname", Js.Unsafe.inject (Js.string loc_start.pos_fname));
+            ("posLnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_lnum)));
+            ("posBol", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_bol)));
+            ("posCnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_start.pos_cnum)));
+          |]);
+          ("locEnd",
+          Js.Unsafe.obj [|
+            ("posFname", Js.Unsafe.inject (Js.string loc_end.pos_fname));
+            ("posLnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_lnum)));
+            ("posBol", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_bol)));
+            ("posCnum", Js.Unsafe.inject (Js.number_of_float (float_of_int loc_end.pos_cnum)));
+          |])
           |]
-        ) suggestions
+          )
+          locs)
         in
         Worker.post_message (Js.Unsafe.obj [|
           ("msgId", code##.msgId);
-          ("msgType", Js.Unsafe.inject (Js.string "complete_prefix"));
-          ("suggestions", Js.Unsafe.inject (Js.array suggestions));
+          ("msgType", Js.Unsafe.inject (Js.string m1));
+          ("subtype", Js.Unsafe.inject (Js.string m2));
+          ("locations", Js.Unsafe.inject (Js.array result));
+          ("message", Js.Unsafe.inject (Js.string (String.trim s)));
         |])
       | None ->
         Worker.post_message (Js.Unsafe.obj [|
+          ("msgId", code##.msgId);
+          ("msgType", Js.Unsafe.inject (Js.string "NoSyntaxErrors"));
+          |])
+      )
+    | "execute" -> (
+        let (result, _) = execute_code (Js.to_string code##.code) in
+        Worker.post_message (Js.Unsafe.obj [|
+          ("msgId", code##.msgId);
+          ("msgType", Js.Unsafe.inject (Js.string "execute"));
+          ("result", Js.Unsafe.inject (Js.string result));
+        |])
+      )
+    | "complete_prefix" -> (
+        let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
+        let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
+        let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
+        let show_docs = true in
+        let pos_fname = Js.to_string code##.posFname in
+        let pos = Lexing.{
+          pos_fname;
+          pos_lnum;
+          pos_bol;
+          pos_cnum;
+        } in
+        let text = Js.to_string code##.text in
+        let result = autocomplete pos text in
+
+        match result with
+        | Some suggestions ->
+          let kind_to_string = function
+          |`Value -> "Value"
+          |`Constructor -> "Constructor"
+          |`Variant -> "Variant"
+          |`Label -> "Label"
+          |`Module -> "Module"
+          |`Modtype -> "Modtype"
+          |`Type -> "Type"
+          |`MethodCall -> "MethodCall"
+          in
+          let suggestions = Array.map (fun (name, kind, desc, info) ->
+            let doc = if show_docs then
+              let li = Longident.flatten (Longident.parse text) in
+              let name = (
+                if List.length li > 1 then
+                  let li = List.rev (List.tl (List.rev li)) @ [name] in
+                  String.concat "." li
+                else
+                  ""
+              )
+              in
+                match documentation pos name with
+                | Some s -> s
+                | _ -> ""
+            else
+              ""
+            in
+            Js.Unsafe.obj [|
+              ("name", Js.Unsafe.inject (Js.string name));
+              ("kind", Js.Unsafe.inject (Js.string (kind_to_string kind)));
+              ("doc", Js.Unsafe.inject (Js.string doc));
+              ("desc", Js.Unsafe.inject (Js.string desc));
+              (* ("desc", desc); *)
+              (* ("info", Js.Unsafe.inject (Js.string info)); *)
+            |]
+          ) suggestions
+          in
+          Worker.post_message (Js.Unsafe.obj [|
             ("msgId", code##.msgId);
             ("msgType", Js.Unsafe.inject (Js.string "complete_prefix"));
-            ("suggestions", Js.Unsafe.inject (Js.array [||]));
+            ("suggestions", Js.Unsafe.inject (Js.array suggestions));
           |])
-    )
-  | "documentation" -> (
-      let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
-      let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
-      let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
-      let pos_fname = Js.to_string code##.posFname in
-      let pos = Lexing.{
-        pos_fname;
-        pos_lnum;
-        pos_bol;
-        pos_cnum;
-      } in
-      let result = documentation pos (Js.to_string code##.text) in
-      match result with
-      | Some s -> Worker.post_message (Js.Unsafe.obj [|
-          ("msgId", code##.msgId);
-          ("msgType", Js.Unsafe.inject (Js.string "documentation"));
-          ("documentation", Js.Unsafe.inject (Js.string s));
-        |])
-      | None -> ()
-    )
-  | "outline" -> (
-      match !latest_env, !latest_typed_structure with
-      | Some env, Some ts ->
-        let outline = Outline.get [Browse_tree.of_node (Structure ts)] in
-        let json = Query_json.json_of_outline outline in
-        let result = Std.Json.to_string (`List json) in
-        Worker.post_message (Js.Unsafe.obj [|
-            ("msgId", code##.msgId);
-            ("msgType", Js.Unsafe.inject (Js.string "outline"));
-            ("outline", Json.unsafe_input (Js.string result));
-          |])
-
-      | _ -> ()
-    )
-  | "shape" -> (
-      match !latest_env, !latest_typed_structure with
-      | Some env, Some ts ->
+        | None ->
+          Worker.post_message (Js.Unsafe.obj [|
+              ("msgId", code##.msgId);
+              ("msgType", Js.Unsafe.inject (Js.string "complete_prefix"));
+              ("suggestions", Js.Unsafe.inject (Js.array [||]));
+            |])
+      )
+    | "documentation" -> (
         let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
         let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
         let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
@@ -356,16 +322,30 @@ Worker.set_onmessage (fun code ->
           pos_bol;
           pos_cnum;
         } in
-        let shapes = Outline.shape pos [Browse_tree.of_node (Structure ts)] in
-        let result = Std.Json.to_string (`List (List.map Query_json.json_of_shape shapes)) in
-        Worker.post_message (Js.Unsafe.obj [|
+        let result = documentation pos (Js.to_string code##.text) in
+        match result with
+        | Some s -> Worker.post_message (Js.Unsafe.obj [|
             ("msgId", code##.msgId);
-            ("msgType", Js.Unsafe.inject (Js.string "shape"));
-            ("shape", Json.unsafe_input (Js.string result));
+            ("msgType", Js.Unsafe.inject (Js.string "documentation"));
+            ("documentation", Js.Unsafe.inject (Js.string s));
           |])
-      | _ -> ()
-    )
-    | "locate" -> (
+        | None -> ()
+      )
+    | "outline" -> (
+        match !latest_env, !latest_typed_structure with
+        | Some env, Some ts ->
+          let outline = Outline.get [Browse_tree.of_node (Structure ts)] in
+          let json = Query_json.json_of_outline outline in
+          let result = Std.Json.to_string (`List json) in
+          Worker.post_message (Js.Unsafe.obj [|
+              ("msgId", code##.msgId);
+              ("msgType", Js.Unsafe.inject (Js.string "outline"));
+              ("outline", Json.unsafe_input (Js.string result));
+            |])
+
+        | _ -> ()
+      )
+    | "shape" -> (
         match !latest_env, !latest_typed_structure with
         | Some env, Some ts ->
           let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
@@ -378,75 +358,97 @@ Worker.set_onmessage (fun code ->
             pos_bol;
             pos_cnum;
           } in
-          let str = Js.to_string code##.text in
-          let result = Track_definition.from_string ~env:env ~local_defs:(`Implementation ts) ~pos ~config:Mconfig.initial `ML str in
-          let result = match result with
-          | `At_origin -> `String "Already at definition point"
-          | `Builtin s ->
-            `String (Printf.sprintf "%S is a builtin, and it is therefore impossible \
-                              to jump to its definition" s)
-          | `Invalid_context -> `String "Not a valid identifier"
-          | `Not_found (id, None) -> `String ("didn't manage to find " ^ id)
-          | `Not_found (i, Some f) ->
-            `String
-              (Printf.sprintf "%s was supposed to be in %s but could not be found" i f)
-          | `Not_in_env str ->
-            `String (Printf.sprintf "Not in environment '%s'" str)
-          | `File_not_found msg ->
-            `String msg
-          | `Found (None,pos) ->
-            `Assoc ["pos", Std.Lexing.json_of_position pos]
-          | `Found (Some file,pos) ->
-            `Assoc ["file",`String file; "pos", Std.Lexing.json_of_position pos]
-          in
-          let result = Std.Json.to_string result in
+          let shapes = Outline.shape pos [Browse_tree.of_node (Structure ts)] in
+          let result = Std.Json.to_string (`List (List.map Query_json.json_of_shape shapes)) in
           Worker.post_message (Js.Unsafe.obj [|
               ("msgId", code##.msgId);
-              ("msgType", Js.Unsafe.inject (Js.string "locate"));
-              ("locate", Json.unsafe_input (Js.string result));
+              ("msgType", Js.Unsafe.inject (Js.string "shape"));
+              ("shape", Json.unsafe_input (Js.string result));
             |])
         | _ -> ()
       )
-  | "type_expr" -> (
-    match !latest_env, !latest_typed_structure with
-    | Some env, Some ts ->
-      let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
-      let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
-      let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
-      let pos_fname = Js.to_string code##.posFname in
-      let pos = Lexing.{
-        pos_fname;
-        pos_lnum;
-        pos_bol;
-        pos_cnum;
-      } in
-      let expr = Js.to_string code##.expr in
-      let buffer = Buffer.create 100 in
-      let formatter = Format.formatter_of_buffer buffer in
-      let (foo:Mbrowse.t list) = [[(env, Structure ts)]] in
-      let (env, node) = List.hd (Mbrowse.enclosing pos foo) in
-      let res = Type_utils.type_in_env env formatter expr in
-      if res = true then (
-        Format.pp_print_flush formatter ();
-        let result = Buffer.to_bytes buffer in
-        Worker.post_message (Js.Unsafe.obj [|
+      | "locate" -> (
+          match !latest_env, !latest_typed_structure with
+          | Some env, Some ts ->
+            let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
+            let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
+            let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
+            let pos_fname = Js.to_string code##.posFname in
+            let pos = Lexing.{
+              pos_fname;
+              pos_lnum;
+              pos_bol;
+              pos_cnum;
+            } in
+            let str = Js.to_string code##.text in
+            let result = Track_definition.from_string ~env:env ~local_defs:(`Implementation ts) ~pos ~config:Mconfig.initial `ML str in
+            let result = match result with
+            | `At_origin -> `String "Already at definition point"
+            | `Builtin s ->
+              `String (Printf.sprintf "%S is a builtin, and it is therefore impossible \
+                                to jump to its definition" s)
+            | `Invalid_context -> `String "Not a valid identifier"
+            | `Not_found (id, None) -> `String ("didn't manage to find " ^ id)
+            | `Not_found (i, Some f) ->
+              `String
+                (Printf.sprintf "%s was supposed to be in %s but could not be found" i f)
+            | `Not_in_env str ->
+              `String (Printf.sprintf "Not in environment '%s'" str)
+            | `File_not_found msg ->
+              `String msg
+            | `Found (None,pos) ->
+              `Assoc ["pos", Std.Lexing.json_of_position pos]
+            | `Found (Some file,pos) ->
+              `Assoc ["file",`String file; "pos", Std.Lexing.json_of_position pos]
+            in
+            let result = Std.Json.to_string result in
+            Worker.post_message (Js.Unsafe.obj [|
+                ("msgId", code##.msgId);
+                ("msgType", Js.Unsafe.inject (Js.string "locate"));
+                ("locate", Json.unsafe_input (Js.string result));
+              |])
+          | _ -> ()
+        )
+    | "type_expr" -> (
+      match !latest_env, !latest_typed_structure with
+      | Some env, Some ts ->
+        let pos_lnum = int_of_float (Js.float_of_number code##.posLnum) in
+        let pos_bol = int_of_float (Js.float_of_number code##.posBol) in
+        let pos_cnum = int_of_float (Js.float_of_number code##.posCnum) in
+        let pos_fname = Js.to_string code##.posFname in
+        let pos = Lexing.{
+          pos_fname;
+          pos_lnum;
+          pos_bol;
+          pos_cnum;
+        } in
+        let expr = Js.to_string code##.expr in
+        let buffer = Buffer.create 100 in
+        let formatter = Format.formatter_of_buffer buffer in
+        let (foo:Mbrowse.t list) = [[(env, Structure ts)]] in
+        let (env, node) = List.hd (Mbrowse.enclosing pos foo) in
+        let res = Type_utils.type_in_env env formatter expr in
+        if res = true then (
+          Format.pp_print_flush formatter ();
+          let result = Buffer.to_bytes buffer in
+          Worker.post_message (Js.Unsafe.obj [|
+              ("msgId", code##.msgId);
+              ("msgType", Js.Unsafe.inject (Js.string "type_expr"));
+              ("type", Js.Unsafe.inject  (Js.string result));
+              |]);
+          )
+        else (
+          Worker.post_message (Js.Unsafe.obj [|
             ("msgId", code##.msgId);
             ("msgType", Js.Unsafe.inject (Js.string "type_expr"));
-            ("type", Js.Unsafe.inject  (Js.string result));
-            |]);
-        )
-      else (
-        Worker.post_message (Js.Unsafe.obj [|
-          ("msgId", code##.msgId);
-          ("msgType", Js.Unsafe.inject (Js.string "type_expr"));
-          ("type", Js.Unsafe.inject  (Js.string ""));
-          |]));
-    | _ -> ()
+            ("type", Js.Unsafe.inject  (Js.string ""));
+            |]));
+      | _ -> ()
+      )
+    | "case_analysis"
+    | "occurrences" -> (
+        failwith "not implemented yet"
+      )
+    | _ as msgType2 -> print_endline ("[OCaml-gist] Unknown msgType: " ^ msgType2)
     )
-  | "case_analysis"
-  | "occurrences" -> (
-      failwith "not implemented yet"
-    )
-  | _ as msgType2 -> print_endline ("[OCaml-gist] Unknown msgType: " ^ msgType2)
-  )
 );;

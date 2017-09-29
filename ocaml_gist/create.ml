@@ -30,7 +30,7 @@ let file_copy input_name output_name =
 try
   let owl = Findlib.package_directory "ocaml-webworker" in
   let og = Findlib.package_directory "ocaml-gist" in
-  let (output, input, deps, libs) = Cmdliner.(
+  let (output, input, deps, libs, useDocs) = Cmdliner.(
     let output =
       let doc = "Output folder" in
       Arg.(value & opt string "." & info ["output"; "o"]  ~doc)
@@ -47,19 +47,25 @@ try
       let doc = "Libraries" in
       Arg.(value & opt_all string [] & info ["library"; "l"]  ~doc)
     in
+    let useDocs =
+      let doc = "Show documentation (increases filesize considerably)" in
+      Arg.(value & flag & info ["doc"]  ~doc)
+    in
     let out = ref Filename.current_dir_name in
     let input_ = ref Filename.current_dir_name in
     let dependencies = ref [] in
     let libraries = ref [] in
-    let exec output input deps libs = (
+    let useDocs_ = ref false in
+    let exec output input deps libs docs = (
       out := output;
       input_ := input;
       dependencies := deps;
       libraries := libs;
+      useDocs_ := docs;
     ) in
-    let t = Term.(const exec $ output $ input $ deps $ libs) in
+    let t = Term.(const exec $ output $ input $ deps $ libs $ useDocs) in
     ignore(Term.eval (t, Term.info "og-create"));
-    (!out, !input_, !dependencies, !libraries)
+    (!out, !input_, !dependencies, !libraries, !useDocs_)
   ) in
   let owl_files = all_files_but_opams owl in
   let og_files = all_files_but_opams og in
@@ -108,6 +114,29 @@ try
   (* create the cmi files *)
   (* TODO: use cmti files instead when available *)
   let cmi_files = List.map (fun file -> Filename.chop_extension file ^ ".cmi") deps in
-  execute (["jsoo_mkcmis"] @ libs @ cmi_files @ ["-o";Filename.concat output "cmi.js"])
+  let non_js = List.filter (fun file ->
+    if file.[0] <> '+' then
+      true
+    else
+      false
+    ) libs in
+  let js = List.filter (fun file ->
+    if file.[0] = '+' then
+      true
+    else
+      false
+    ) libs in
+  (* let no_js = List.filter () *)
+  if List.length non_js > 0 then
+    (if useDocs then
+      (execute (["cmti-bundler"] @ non_js);
+      execute (["jsoo_mkcmis"; "./cmtis/*.cmi"] @ js @ cmi_files @ ["-o";Filename.concat output "cmi.js"]))
+    else
+      execute (["jsoo_mkcmis"] @ non_js @ cmi_files @ ["-o";Filename.concat output "cmi.js"]);
+    )
+  else
+    execute (["jsoo_mkcmis"] @ js @ cmi_files @ ["-o";Filename.concat output "cmi.js"]);
+  (* execute ["cat"; "output.js"; ">>"; Filename.concat output "cmi.js"] *)
+
 with
 | Findlib.No_such_package (p, msg) -> print_endline (p ^ ":" ^ msg)

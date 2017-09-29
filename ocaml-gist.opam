@@ -18,5 +18,6 @@ depends: [
   "js_of_ocaml-toplevel"
   "yojson"
   "cmdliner"
+  "ocaml-webworker"
 ]
 available: [ocaml-version >= "4.04.1"]

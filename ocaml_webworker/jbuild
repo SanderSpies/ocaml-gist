@@ -284,24 +284,12 @@
 ))
 
 (executable (
-  (name stdlib_builder)
+  (name cmti_bundler)
   (package ocaml-webworker)
-  (public_name og-stdlib)
-  (libraries (findlib js_of_ocaml unix))
-  (modules (stdlib_builder))
-))
-
-
-(rule (
-  (targets (stdlib.cmis.js))
-  (deps (stdlib_builder.exe))
-  (action (progn
-    (run og-stdlib)
-  ))
-))
-
-(install (
-  (section lib)
-  (package ocaml-webworker)
-  (files (stdlib.cmis.js))
+  (public_name cmti-bundler)
+  (libraries ( bytes
+    js_of_ocaml-compiler
+    js_of_ocaml-compiler.findlib-support
+  findlib js_of_ocaml unix))
+  (modules (cmti_bundler))
 ))

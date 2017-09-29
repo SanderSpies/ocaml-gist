@@ -1,4 +1,4 @@
-Worker.import_scripts ["stdlib.cmis.js"; "cmi.js"];;
+Worker.import_scripts ["cmi.js"];;
 
 let err s = (
   Firebug.console##error (Js.string s)

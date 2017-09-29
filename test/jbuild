@@ -3,14 +3,45 @@
   (modules foo)
 ))
 
+
 (alias (
-  (name runtest)
+  (name stdlib)
+  (action (progn
+    (run og-create
+         --lib stdlib
+         --input examples
+         --output output_stdlib
+         --doc
+    )
+  ))
+))
+
+
+(alias (
+  (name base)
   (deps (foo.cma))
   (action (progn
     (run og-create
          --input examples
-         --output output
+         --output output_core_kernel
          --dependency foo.cma
+         --lib stdlib
+         --lib +base/runtime.js
+         --lib base
+         --doc
+    )
+  ))
+))
+
+(alias (
+  (name core_kernel)
+  (deps (foo.cma))
+  (action (progn
+    (run og-create
+         --input examples
+         --output output_core_kernel
+         --dependency foo.cma
+         --lib stdlib
          --lib +base/runtime.js
          --lib base
          --lib stdio
@@ -20,6 +51,50 @@
          --lib +bin_prot/runtime.js
          --lib +ppx_expect/runtime.js
     )
-    (system "cd output && python -m SimpleHTTPServer")
   ))
+))
+
+(alias (
+  (name lwt)
+  (deps (foo.cma))
+  (action (progn
+    (run og-create
+         --input examples
+         --output output_lwt
+         --dependency foo.cma
+         --lib stdlib
+         --lib result
+         --lib lwt
+         --lib js_of_ocaml-lwt
+         --lib js_of_ocaml
+    )
+  ))
+))
+
+(alias (
+  (name irmin)
+  (deps (foo.cma))
+  (action (progn
+    (run og-create
+         --input examples
+         --output output_irmin
+         --dependency foo.cma
+         --lib stdlib
+         --lib lwt
+         --lib irmin
+    )
+  ))
+))
+
+(alias (
+  (name runtest)
+  (deps (
+    (alias base)
+    ;(alias core_kernel)
+    ;(alias lwt)
+    ; (alias irmin)
+  ))
+  (action
+    (system "python -m SimpleHTTPServer")
+  )
 ))

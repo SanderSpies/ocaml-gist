@@ -8,15 +8,47 @@ let execute cmd =
   | Unix.WEXITED _ -> ()
   | _ -> failwith (Printf.sprintf "Error: %s" s)
 
-let buffer_size = 8192;;
-let buffer = Bytes.create buffer_size;;
 
-let all_files_but_opams dir = (
+
+let filtered_files dir = (
   let all_files = Array.to_list (Sys.readdir dir) in
-  List.filter (fun filename -> filename <> "META" && filename <> "opam" && filename <> "opam.config") all_files
+  List.filter (fun filename -> filename <> "index.html" && filename <> "META" && filename <> "opam" && filename <> "opam.config") all_files
+)
+
+let read_file filename = (
+  let buffer_size = 8192 in
+  let buffer = Bytes.create buffer_size in
+  let fd_in = openfile filename [O_RDONLY] 0 in
+  let result = ref "" in
+  let rec read_loop () = match read fd_in buffer 0 buffer_size with
+    | 0 -> ()
+    | r -> result := !result ^ buffer; read_loop ()
+  in
+  read_loop ();
+  !result)
+
+let write_file file s =
+   ( let channel = open_out file in
+     output_string channel s;
+     close_out channel )
+
+let create_index_html og_folder input output_folder = (
+  let folder = Filename.concat (Sys.getcwd ()) input in
+  let files = Array.to_list (Sys.readdir folder) in
+  let inputHTML = ref "" in
+  List.iter (fun f -> (
+    inputHTML := !inputHTML ^ "<div data-ocaml>" ^ (read_file (Filename.concat folder f)) ^ "</div>"
+  )) files;
+  let index_file = read_file (Filename.concat og_folder "index.html") in
+  let index_content = Str.replace_first (Str.regexp "<!-- replace me -->") !inputHTML index_file in
+  write_file (Filename.concat output_folder "index.html") index_content
 )
 
 let file_copy input_name output_name =
+let buffer_size = 8192 in
+let buffer = Bytes.create buffer_size in
+  if (Sys.file_exists output_name) then
+    failwith ("output name already exists:" ^ output_name);
   let fd_in = openfile input_name [O_RDONLY] 0 in
   let fd_out = openfile output_name [O_WRONLY; O_CREAT; O_TRUNC] 0o666 in
   let rec copy_loop () = match read fd_in buffer 0 buffer_size with
@@ -28,6 +60,14 @@ let file_copy input_name output_name =
   close fd_out;;
 
 try
+  let tmp = Printf.sprintf "%.30f" (Unix.gettimeofday ()) in
+  let tmp_dir = ref (Filename.concat (Filename.get_temp_dir_name ()) tmp) in
+  while Sys.file_exists !tmp_dir do
+    let tmp = Printf.sprintf "%.30f" (Unix.gettimeofday ()) in
+    tmp_dir := Filename.concat (Filename.get_temp_dir_name ()) tmp
+  done;
+  let tmp_dir = !tmp_dir in
+  Unix.mkdir tmp_dir 0o755;
   let owl = Findlib.package_directory "ocaml-webworker" in
   let og = Findlib.package_directory "ocaml-gist" in
   let (output, input, deps, libs, useDocs) = Cmdliner.(
@@ -67,15 +107,20 @@ try
     ignore(Term.eval (t, Term.info "og-create"));
     (!out, !input_, !dependencies, !libraries, !useDocs_)
   ) in
-  let owl_files = all_files_but_opams owl in
-  let og_files = all_files_but_opams og in
+  let owl_files = filtered_files owl in
+  let og_files = filtered_files og in
 
   if Sys.file_exists output = false then
     Unix.mkdir output 0o755;
 
   (* copy the files to the output *)
-  List.iter (fun file -> file_copy (Filename.concat owl file) (Filename.concat output file)) owl_files;
-  List.iter (fun file -> file_copy (Filename.concat og file) (Filename.concat output file)) og_files;
+  List.iter (fun file -> file_copy (Filename.concat owl file) (Filename.concat tmp_dir file)) owl_files;
+  List.iter (fun file -> file_copy (Filename.concat og file) (Filename.concat tmp_dir file)) og_files;
+  let folder = Sys.getcwd () in
+  let files = List.filter (fun f -> not (Sys.is_directory f)) (Array.to_list (Sys.readdir folder)) in
+  List.iter (fun file -> file_copy (Filename.concat folder file) (Filename.concat tmp_dir file)) files;
+  create_index_html og input tmp_dir;
+
 
   (* packages that should be available in the gist tool *)
   let export_packages = List.fold_left (fun deps acc -> (
@@ -91,7 +136,7 @@ try
   let deps2 = List.fold_left (fun deps acc -> deps ^ "-jsopt \" -I . --file " ^ acc ^ "\"") "" deps in
 
   (* create the actual webworker *)
-  execute ([ "jsoo_mktop";
+  execute ([ "cd " ^ tmp_dir; "&&";"jsoo_mktop";
             "-jsopt"; "\"--disable genprim\"";
             (* "-g"; *)
             (* "-jsopt"; "--source-map-inline"; *)
@@ -108,7 +153,7 @@ try
             export_packages;
             deps2;
             (Filename.concat owl "ocaml_webworker.cma");
-            "-o";(Filename.concat output "ocaml_webworker.js");
+            "-o";(Filename.concat tmp_dir "ocaml_webworker.js");
           ]);
 
   (* create the cmi files *)
@@ -126,16 +171,16 @@ try
     else
       false
     ) libs in
-  (* let no_js = List.filter () *)
-  if List.length non_js > 0 then
+  (if List.length non_js > 0 then
     (if useDocs then
-      (execute (["cmti-bundler"] @ non_js);
-      execute (["jsoo_mkcmis"; "./cmtis/*.cmi"] @ js @ cmi_files @ ["-o";Filename.concat output "cmi.js"]))
+      (execute (["cd"; tmp_dir; "&&"; "cmti-bundler"] @ non_js);
+      execute (["cd"; tmp_dir; "&&"; "jsoo_mkcmis"; "./cmtis/*.cmi"] @ js @ cmi_files @ ["-o";Filename.concat tmp_dir "cmi.js"]))
     else
-      execute (["jsoo_mkcmis"] @ non_js @ cmi_files @ ["-o";Filename.concat output "cmi.js"]);
+      execute (["cd"; tmp_dir; "&&"; "jsoo_mkcmis"] @ non_js @ cmi_files @ ["-o";Filename.concat tmp_dir "cmi.js"]);
     )
   else
-    execute (["jsoo_mkcmis"] @ js @ cmi_files @ ["-o";Filename.concat output "cmi.js"]);
+    execute (["cd"; tmp_dir; "&&"; "jsoo_mkcmis"] @ js @ cmi_files @ ["-o";Filename.concat tmp_dir "cmi.js"]));
+  execute (["mv"; Filename.concat tmp_dir "*.js"; Filename.concat tmp_dir "*.html"; Filename.concat tmp_dir "*.svg"; Filename.concat tmp_dir "*.css"; output])
   (* execute ["cat"; "output.js"; ">>"; Filename.concat output "cmi.js"] *)
 
 with

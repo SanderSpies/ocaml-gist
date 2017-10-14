@@ -428,7 +428,7 @@ and from_path ~config path =
     end
   | (fname, `Mod) :: modules ->
     begin try
-      let cmt_file = "/static/cmis/" ^  (String.lowercase fname) ^ ".cmi" in
+      let cmt_file = "/static/cmis/" ^  (String.uncapitalize fname) ^ ".cmi" in
       browse_cmts ~config ~root:cmt_file modules
     with File.Not_found (File.CMT fname | File.CMTI fname) as exn ->
       restore_loadpath (fun () ->

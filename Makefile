@@ -33,5 +33,11 @@ dev_env:
 	cp _build/default/ocaml_gist/stdlib.js ocaml_gist/src/stdlib.js
 	cp _build/default/ocaml_gist/ocaml_webworker.js ocaml_gist/src/ocaml_webworker.js
 
+dev: build
+	opam pin remove ocaml-webworker
+	opam pin remove ocaml-gist
+	opam pin add -y ocaml-webworker .
+	opam pin add -y ocaml-gist .
+
 run:
 	jbuilder build @run

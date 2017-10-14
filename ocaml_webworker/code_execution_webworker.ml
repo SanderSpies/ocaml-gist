@@ -135,14 +135,21 @@ let autocomplete (pos:Lexing.position) str = (
 
 let comments = []
 
-let documentation pos str = (
+let regexp_exn = Regexp.regexp "_exn$"
+
+let rec documentation pos str = (
   try (
   match !latest_env, !latest_typed_structure with
   | Some latest_env, Some latest_typed_structure -> (
     let result = Track_definition.get_doc ~env:latest_env ~local_defs:(`Implementation latest_typed_structure) ~pos ~comments ~config:Mconfig.initial (`User_input str) in
     match result with
-    | `Found str -> Some str
-    | _ -> None )
+    | `Found str -> (
+      Some str
+    )
+    | _ ->
+      None
+    )
+
   | _ -> None )
    with
   | _ -> None
@@ -272,22 +279,26 @@ Worker.set_onmessage (fun code ->
           |`Type -> "Type"
           |`MethodCall -> "MethodCall"
           in
-          let suggestions = Array.map (fun (name, kind, desc, info) ->
-            let doc = if show_docs then
-              let li = Longident.flatten (Longident.parse text) in
-              let name = (
-                if List.length li > 1 then
-                  let li = List.rev (List.tl (List.rev li)) @ [name] in
-                  String.concat "." li
-                else
-                  ""
-              )
-              in
+          let suggestions = Array.to_list suggestions in
+          let suggestions = List.rev_map (fun (name, kind, desc, info) ->
+            let doc =
+              if show_docs then
+              (
+                let li = Longident.flatten (Longident.parse text) in
+                let name = (
+                  if List.length li > 1 then
+                    let li = List.rev (List.tl (List.rev li)) @ [name] in
+                    String.concat "." li
+                  else
+                    ""
+                )
+                in
                 match documentation pos name with
-                | Some s -> s
-                | _ -> ""
-            else
-              ""
+                  | Some s -> s
+                  | None -> ""
+              )
+              else
+                ""
             in
             Js.Unsafe.obj [|
               ("name", Js.Unsafe.inject (Js.string name));
@@ -298,6 +309,8 @@ Worker.set_onmessage (fun code ->
               (* ("info", Js.Unsafe.inject (Js.string info)); *)
             |]
           ) suggestions
+          in
+          let suggestions = Array.of_list suggestions
           in
           Worker.post_message (Js.Unsafe.obj [|
             ("msgId", code##.msgId);

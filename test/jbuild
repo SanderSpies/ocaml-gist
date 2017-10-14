@@ -1,29 +1,18 @@
+
+
 (library (
   (name foo)
   (modules foo)
 ))
 
-
-(alias (
-  (name stdlib)
-  (action (progn
-    (run og-create
-         --lib stdlib
-         --input examples
-         --output output_stdlib
-         --doc
-    )
-  ))
-))
-
-
 (alias (
   (name base)
   (deps (foo.cma))
   (action (progn
+    (system "cp -R ../../../test/input_base ./input_base")
     (run og-create
-         --input examples
-         --output output_core_kernel
+         --input input_base
+         --output output_base
          --dependency foo.cma
          --lib stdlib
          --lib +base/runtime.js
@@ -33,13 +22,38 @@
   ))
 ))
 
+
 (alias (
   (name core_kernel)
   (deps (foo.cma))
   (action (progn
+    (system "cp -R ../../../test/input_core_kernel ./input_core_kernel")
     (run og-create
-         --input examples
+         --input input_core_kernel
          --output output_core_kernel
+         --dependency foo.cma
+         --lib stdlib
+         --lib +base/runtime.js
+         --lib base
+         --lib stdio
+         --lib core_kernel
+         --lib +core_kernel/runtime.js
+         --lib +core_kernel/strftime.js
+         --lib +bin_prot/runtime.js
+         --lib +ppx_expect/runtime.js
+         --doc
+    )
+  ))
+))
+
+(alias (
+  (name core_kernel_no_doc)
+  (deps (foo.cma))
+  (action (progn
+    (system "cp -R ../../../test/input_core_kernel ./input_core_kernel")
+    (run og-create
+         --input input_core_kernel
+         --output output_core_kernel_no_doc
          --dependency foo.cma
          --lib stdlib
          --lib +base/runtime.js
@@ -58,8 +72,9 @@
   (name lwt)
   (deps (foo.cma))
   (action (progn
+    (system "cp -R ../../../test/input_lwt ./input_lwt")
     (run og-create
-         --input examples
+         --input input_lwt
          --output output_lwt
          --dependency foo.cma
          --lib stdlib
@@ -72,16 +87,15 @@
 ))
 
 (alias (
-  (name irmin)
+  (name stdlib)
   (deps (foo.cma))
   (action (progn
+    (system "cp -R ../../../test/input_stdlib ./input_stdlib")
     (run og-create
-         --input examples
-         --output output_irmin
-         --dependency foo.cma
          --lib stdlib
-         --lib lwt
-         --lib irmin
+         --input input_stdlib
+         --output output_stdlib
+         --doc
     )
   ))
 ))
@@ -90,11 +104,13 @@
   (name runtest)
   (deps (
     (alias base)
-    ;(alias core_kernel)
-    ;(alias lwt)
-    ; (alias irmin)
+    (alias core_kernel)
+    (alias core_kernel_no_doc)
+    (alias stdlib)
+    (alias lwt)
   ))
-  (action
-    (system "python -m SimpleHTTPServer")
+  (action (progn
+      (system "python -m SimpleHTTPServer")
+    )
   )
 ))

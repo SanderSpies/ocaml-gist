@@ -24,8 +24,8 @@
   (action  (copy ${<} ${@}))))
 
 (rule
- ((targets (codemirror.css))
-  (deps    (src/codemirror.css))
+ ((targets (ocaml-gist.css))
+  (deps    (src/ocaml-gist.css))
   (action  (copy ${<} ${@}))))
 
 (rule
@@ -72,7 +72,7 @@
   (files (
          ocaml_gist.js
          index.html
-         codemirror.css
+         ocaml-gist.css
          error.svg
          execute.svg))
 ))
@@ -80,7 +80,7 @@
 (executable (
   (name create)
   (package ocaml-gist)
-  (libraries (cmdliner findlib unix))
+  (libraries (cmdliner findlib unix str))
   (public_name og-create)
   (modules (
     create

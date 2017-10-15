@@ -37,7 +37,10 @@ let create_index_html og_folder input output_folder = (
   let files = Array.to_list (Sys.readdir folder) in
   let inputHTML = ref "" in
   List.iter (fun f -> (
-    inputHTML := !inputHTML ^ "<div data-ocaml>" ^ (read_file (Filename.concat folder f)) ^ "</div>"
+    let filename = (Filename.concat folder f) in
+    if not (Sys.is_directory filename) then (
+      inputHTML := !inputHTML ^ "<div data-ocaml>" ^ (read_file filename) ^ "</div>"
+    )
   )) files;
   let index_file = read_file (Filename.concat og_folder "index.html") in
   let index_content = Str.replace_first (Str.regexp "<!-- replace me -->") !inputHTML index_file in
@@ -120,7 +123,6 @@ try
   let files = List.filter (fun f -> not (Sys.is_directory f)) (Array.to_list (Sys.readdir folder)) in
   List.iter (fun file -> file_copy (Filename.concat folder file) (Filename.concat tmp_dir file)) files;
   create_index_html og input tmp_dir;
-
 
   (* packages that should be available in the gist tool *)
   let export_packages = List.fold_left (fun deps acc -> (

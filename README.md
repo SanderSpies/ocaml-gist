@@ -53,14 +53,14 @@ or via jbuilder:
 ))
 ```
 
-(see also https://github.com/SanderSpies/ocaml-gist/test/jbuild)
+(see also https://github.com/SanderSpies/ocaml-gist/blob/master/test/jbuild)
 
 Run the `output_folder` in a webserver and go to the `index.html` page on
 your website.
 
 Acknowledgements
 ---
-OCaml Labs - for sponsoring my work on this
+OCaml Labs - for sponsoring work on this
 Merlin - most of the code in ocaml_webworker/merlin_lite comes from Merlin
 Js_of_ocaml - ocaml_webworker/cmti_bundler.ml is based on code from Jsoo
 

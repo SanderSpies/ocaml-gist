@@ -172,6 +172,7 @@ module Gist = {
   type errorLocations = array range;
   type tooltip = (string, int, int);
   type state = {
+    hasFocus: bool,
     console: string,
     codeState,
     errorLocations,
@@ -202,32 +203,68 @@ module Gist = {
   };
   type pos = Js.t {. line : int, ch : int, outside : bool};
   let getToken editor (pos: pos) => {
-    let rec inner editor (pos: pos) result => {
-      let token = editor##getTokenAt pos;
-      let str = String.trim token##string;
-      switch str {
-      | "" =>
-        if (List.length result == 0) {
-          ((-1), (-1), "")
-        } else {
-          let str =
-            String.concat "" (List.map (fun token => token##string) result);
-          let lastToken = List.nth (List.rev result) 0;
-          let lastTokenString = lastToken##string;
-          if (lastTokenString.[0] == '.') {
-            (lastToken##start + 1, lastToken##_end, str)
-          } else {
-            (lastToken##start, lastToken##_end, str)
+    let lineTokens = editor##getLineTokens pos##line;
+
+    /* TODO: change characters that are not [_.a-zA-Z0-9] into separate space entries */
+
+    let start = ref 0;
+    let rec it items result isCurrentToken => {
+
+      switch items {
+        | [token, ...tl] => {
+          if (result == "") {
+            start := token##start;
+          };
+
+          let isCurrent = if (pos##ch >= token##start && pos##ch <= token##_end) {
+            true
           }
+          else {
+            isCurrentToken
+          };
+
+          let token_str = String.trim token##string;
+          switch token_str  {
+            | "" => {
+              if isCurrent {
+                  result
+              }
+              else {
+                it tl "" isCurrent
+              }
+            }
+            | _ => {
+              let regexp = [%bs.re "/^[a-zA-Z_.]+/"];
+              let first_ch = Char.escaped (token_str.[0]);
+              let last_ch = Char.escaped (token_str.[(String.length token_str) - 1]);
+              let first_match = Js.Re.test first_ch regexp;
+              let last_match = Js.Re.test last_ch regexp;
+
+              let token_str = if (first_match == false) {
+                String.sub token_str 1 ((String.length token_str) - 1)
+              } else {
+                token_str
+              };
+
+              if (last_match == false && String.length token_str > 0) {
+                let r = String.sub token_str 0 ((String.length token_str) - 1);
+                it tl (result ^ r) isCurrent
+              } else {
+                it tl (result ^ token_str) isCurrent
+              };
+
+
+            }
+          };
         }
-      | _ =>
-        let line: int = pos##line;
-        let ch: int = token##start;
-        let pos: pos = {"line": line, "ch": ch, "outside": false};
-        inner editor pos ([token] @ result)
+        | [] => {
+          result
+        }
       }
     };
-    inner editor pos []
+    let result = it (Array.to_list lineTokens) "" false;
+
+    (!start, 0, result)
   };
   let autocompleteSuggestions codeMirror => {
     let cur = codeMirror##getCursor ();
@@ -368,58 +405,68 @@ module Gist = {
       ...state,
       codeMirrorRef: Js.Null.to_opt codeMirrorInstance
     };
-  let onFocusChange self hasFocus =>
+  let focus hasFocus {ReasonReact.state: state} => {
+    ReasonReact.Update {...state, hasFocus}
+  };
+  let onFocusChange self hasFocus => {
+    let update = self.ReasonReact.update;
     if hasFocus {
-      let update = self.ReasonReact.update;
       update
         codeMirrorAction
         (fun codeMirror => onChange self (codeMirror##getValue ()))
     };
+    update focus hasFocus
+  };
+
   let setTooltip tooltip {ReasonReact.state: state} =>
     ReasonReact.Update {...state, tooltip};
   let onMouseMove self e => {
+    let hasFocus = self.ReasonReact.state.hasFocus;
     let update = self.ReasonReact.update;
     let left = ReactEventRe.Mouse.pageX e;
     let top = ReactEventRe.Mouse.pageY e;
-    update
-      codeMirrorAction
-      (
-        fun codeMirror => {
-          let pos = codeMirror##coordsChar {"left": left, "top": top};
-          if pos##outside {
-            ()
-          } else {
-            let (start, end_, token) = getToken codeMirror pos;
-            let startChar =
-              codeMirror##charCoords {"ch": start, "line": pos##line};
-            let start = startChar##left;
-            let top = startChar##bottom;
-            /* let end_ = (codeMirror##charCoords {"ch": end_, "line": pos##line})##right; */
-            /* print_endline token; */
-            JsPromise.(
-              CodeExecution.(
-                postMessage (TypeExpression (pos##line + 1) pos##ch token)
-              ) |>
-              then_ (
-                fun response => {
-                  let info = response##_type;
-                  if (info == "") {
-                    update setTooltip None
-                  } else {
-                    update setTooltip (Some (info, top, start))
-                  };
-                  JsPromise.resolve response
-                }
-              )
-            );
-            ()
+    if hasFocus {
+      update
+        codeMirrorAction
+        (
+          fun codeMirror => {
+            let pos = codeMirror##coordsChar {"left": left, "top": top};
+            if pos##outside {
+              update setTooltip None
+            } else {
+              let (start, end_, token) = getToken codeMirror pos;
+              let startChar =
+                codeMirror##charCoords {"ch": start, "line": pos##line};
+              let start = startChar##left;
+              let top = startChar##bottom;
+              /* let end_ = (codeMirror##charCoords {"ch": end_, "line": pos##line})##right; */
+              /* print_endline token; */
+              JsPromise.(
+                CodeExecution.(
+                  postMessage (TypeExpression (pos##line + 1) pos##ch token)
+                ) |>
+                then_ (
+                  fun response => {
+                    let info = response##_type;
+                    if (info == "") {
+                      update setTooltip None
+                    } else {
+                      update setTooltip (Some (info, top, start))
+                    };
+                    JsPromise.resolve response
+                  }
+                )
+              );
+              ()
+            }
           }
-        }
-      )
+        )
+    }
   };
   let make value::(value: string) children => {
     ...component,
     initialState: fun () => {
+      hasFocus: false,
       console: "",
       errorLocations: [||],
       codeState: Busy,

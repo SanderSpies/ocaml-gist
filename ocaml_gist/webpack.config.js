@@ -10,6 +10,7 @@ module.exports = {
   })],
   entry: {
     ocaml_gist: './lib/js/src/gist_tool.js',
+    "src/output/ocaml_gist": './lib/js/src/gist_tool.js'
   },
   output: {
     path: path.join(__dirname, "./"),

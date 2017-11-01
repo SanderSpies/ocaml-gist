@@ -205,16 +205,19 @@
 	}
 
 	function codeMirrorAction(fn, param) {
-	  var ref = param[/* state */4][/* codeMirrorRef */4];
+	  var ref = param[/* state */4][/* codeMirrorRef */3];
 	  if (ref) {
 	    Curry._1(fn, ref[0].getCodeMirror());
 	  }
 	  return /* NoUpdate */0;
 	}
 
+	var ident_regexp = (/^[a-zA-Z_.]+/);
+
 	function getToken(editor, pos) {
 	  var lineTokens = editor.getLineTokens(pos.line);
 	  var start = [0];
+	  var end_ = [0];
 	  var it = function (_items, _result, _isCurrentToken) {
 	    while(true) {
 	      var isCurrentToken = _isCurrentToken;
@@ -223,13 +226,11 @@
 	      if (items) {
 	        var tl = items[1];
 	        var token = items[0];
-	        if (result === "") {
-	          start[0] = token.start;
-	        }
 	        var isCurrent = pos.ch >= token.start && pos.ch <= token.end ? /* true */1 : isCurrentToken;
 	        var token_str = $$String.trim(token.string);
 	        if (token_str === "") {
 	          if (isCurrent) {
+	            end_[0] = token.end;
 	            return result;
 	          } else {
 	            _isCurrentToken = isCurrent;
@@ -239,11 +240,12 @@
 	            
 	          }
 	        } else {
-	          var regexp = (/^[a-zA-Z_.]+/);
+	          start[0] = token.start + 1 | 0;
+	          end_[0] = token.end + 1 | 0;
 	          var first_ch = Char.escaped(Caml_string.get(token_str, 0));
 	          var last_ch = Char.escaped(Caml_string.get(token_str, token_str.length - 1 | 0));
-	          var first_match = +regexp.test(first_ch);
-	          var last_match = +regexp.test(last_ch);
+	          var first_match = +ident_regexp.test(first_ch);
+	          var last_match = +ident_regexp.test(last_ch);
 	          var token_str$1 = first_match ? token_str : $$String.sub(token_str, 1, token_str.length - 1 | 0);
 	          if (last_match === /* false */0 && token_str$1.length > 0) {
 	            var r = $$String.sub(token_str$1, 0, token_str$1.length - 1 | 0);
@@ -268,7 +270,7 @@
 	  var result = it($$Array.to_list(lineTokens), "", /* false */0);
 	  return /* tuple */[
 	          start[0],
-	          0,
+	          end_[0],
 	          result
 	        ];
 	}
@@ -326,12 +328,11 @@
 	function $$console(param, param$1) {
 	  var state = param$1[/* state */4];
 	  return /* Update */Block.__(0, [/* record */[
-	              /* hasFocus */state[/* hasFocus */0],
 	              /* console */param[1],
 	              /* codeState */param[0],
-	              /* errorLocations */state[/* errorLocations */3],
-	              /* codeMirrorRef */state[/* codeMirrorRef */4],
-	              /* tooltip */state[/* tooltip */5]
+	              /* errorLocations */state[/* errorLocations */2],
+	              /* codeMirrorRef */state[/* codeMirrorRef */3],
+	              /* tooltip */state[/* tooltip */4]
 	            ]]);
 	}
 
@@ -434,37 +435,34 @@
 	}
 
 	function setCodeMirrorRef(codeMirrorInstance, param) {
-	  var newrecord = param[/* state */4].slice();
-	  return /* SilentUpdate */Block.__(1, [(newrecord[/* codeMirrorRef */4] = codeMirrorInstance === null ? /* None */0 : [codeMirrorInstance], newrecord)]);
-	}
-
-	function focus(hasFocus, param) {
-	  var newrecord = param[/* state */4].slice();
-	  return /* Update */Block.__(0, [(newrecord[/* hasFocus */0] = hasFocus, newrecord)]);
-	}
-
-	function onFocusChange(self, hasFocus) {
-	  var update = self[/* update */1];
-	  if (hasFocus) {
-	    Curry._2(update, codeMirrorAction, (function (codeMirror) {
-	            return onChange(self, codeMirror.getValue());
-	          }));
-	  }
-	  return Curry._2(update, focus, hasFocus);
+	  var state = param[/* state */4];
+	  return /* SilentUpdate */Block.__(1, [/* record */[
+	              /* console */state[/* console */0],
+	              /* codeState */state[/* codeState */1],
+	              /* errorLocations */state[/* errorLocations */2],
+	              /* codeMirrorRef */codeMirrorInstance === null ? /* None */0 : [codeMirrorInstance],
+	              /* tooltip */state[/* tooltip */4]
+	            ]]);
 	}
 
 	function setTooltip(tooltip, param) {
-	  var newrecord = param[/* state */4].slice();
-	  return /* Update */Block.__(0, [(newrecord[/* tooltip */5] = tooltip, newrecord)]);
+	  var state = param[/* state */4];
+	  return /* Update */Block.__(0, [/* record */[
+	              /* console */state[/* console */0],
+	              /* codeState */state[/* codeState */1],
+	              /* errorLocations */state[/* errorLocations */2],
+	              /* codeMirrorRef */state[/* codeMirrorRef */3],
+	              /* tooltip */tooltip
+	            ]]);
 	}
 
 	function onMouseMove(self, e) {
-	  var hasFocus = self[/* state */4][/* hasFocus */0];
 	  var update = self[/* update */1];
 	  var left = e.pageX;
 	  var top = e.pageY;
-	  if (hasFocus) {
-	    return Curry._2(update, codeMirrorAction, (function (codeMirror) {
+	  return Curry._2(update, codeMirrorAction, (function (codeMirror) {
+	                console.log(codeMirror.state.focused);
+	                if (codeMirror.state.focused) {
 	                  var pos = codeMirror.coordsChar({
 	                        left: left,
 	                        top: top
@@ -498,16 +496,23 @@
 	                          }));
 	                    return /* () */0;
 	                  }
-	                }));
-	  } else {
-	    return 0;
-	  }
+	                } else {
+	                  return 0;
+	                }
+	              }));
+	}
+
+	function onClick(self, _) {
+	  var update = self[/* update */1];
+	  return Curry._2(update, codeMirrorAction, (function (codeMirror) {
+	                return onChange(self, codeMirror.getValue());
+	              }));
 	}
 
 	function make$1(value, _) {
 	  var newrecord = component.slice();
 	  newrecord[/* render */9] = (function (self) {
-	      var match = self[/* state */4][/* codeState */2];
+	      var match = self[/* state */4][/* codeState */1];
 	      var tmp;
 	      switch (match) {
 	        case 0 : 
@@ -535,7 +540,7 @@
 	            break;
 	        
 	      }
-	      var match$1 = self[/* state */4][/* tooltip */5];
+	      var match$1 = self[/* state */4][/* tooltip */4];
 	      var tmp$1;
 	      if (match$1) {
 	        var match$2 = match$1[0];
@@ -550,6 +555,9 @@
 	        tmp$1 = React.createElement("div", undefined);
 	      }
 	      return React.createElement("div", {
+	                  onClick: (function (param) {
+	                      return onClick(self, param);
+	                    }),
 	                  onMouseMove: debounceReactEvent((function (param) {
 	                          return onMouseMove(self, param);
 	                        }), 300)
@@ -560,17 +568,14 @@
 	                            styleActiveLine: /* true */1
 	                          }], /* Some */[debounce((function (param) {
 	                                  return onChange(self, param);
-	                                }), 300)], /* Some */[(function (param) {
-	                              return onFocusChange(self, param);
-	                            })], /* array */[])), React.createElement("div", {
+	                                }), 300)], /* None */0, /* array */[])), React.createElement("div", {
 	                      className: "og-console"
 	                    }, tmp, React.createElement("pre", {
 	                          className: "og-console-text"
-	                        }, self[/* state */4][/* console */1])), tmp$1);
+	                        }, self[/* state */4][/* console */0])), tmp$1);
 	    });
 	  newrecord[/* initialState */10] = (function () {
 	      return /* record */[
-	              /* hasFocus : false */0,
 	              /* console */"",
 	              /* codeState : Busy */2,
 	              /* errorLocations : array */[],
@@ -588,6 +593,7 @@
 	  /* highlightLocations */highlightLocations,
 	  /* removeMarks */removeMarks,
 	  /* codeMirrorAction */codeMirrorAction,
+	  /* ident_regexp */ident_regexp,
 	  /* getToken */getToken,
 	  /* autocompleteSuggestions */autocompleteSuggestions,
 	  /* console */$$console,
@@ -595,10 +601,9 @@
 	  /* onChange */onChange,
 	  /* executeCode */executeCode,
 	  /* setCodeMirrorRef */setCodeMirrorRef,
-	  /* focus */focus,
-	  /* onFocusChange */onFocusChange,
 	  /* setTooltip */setTooltip,
 	  /* onMouseMove */onMouseMove,
+	  /* onClick */onClick,
 	  /* make */make$1
 	];
 

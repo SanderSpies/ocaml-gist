@@ -213,7 +213,7 @@
 	  return /* NoUpdate */0;
 	}
 
-	var ident_regexp = (/^[a-zA-Z_.]+/);
+	var token_regexp = (/^[0-9a-zA-Z_."\[\]]+/);
 
 	function getToken(editor, pos) {
 	  var lineTokens = editor.getLineTokens(pos.line);
@@ -227,7 +227,7 @@
 	      if (items) {
 	        var tl = items[1];
 	        var token = items[0];
-	        var isCurrent = pos.ch >= token.start && pos.ch <= token.end ? /* true */1 : isCurrentToken;
+	        var isCurrent = pos.ch >= token.start && pos.ch < token.end ? /* true */1 : isCurrentToken;
 	        var token_str = $$String.trim(token.string);
 	        if (token_str === "") {
 	          if (isCurrent) {
@@ -241,12 +241,15 @@
 	            
 	          }
 	        } else {
-	          start[0] = token.start + 1 | 0;
-	          end_[0] = token.end + 1 | 0;
+	          var t = token.string;
+	          if (t !== "]" && t !== ")") {
+	            start[0] = token.start;
+	            end_[0] = token.end + 1 | 0;
+	          }
 	          var first_ch = Char.escaped(Caml_string.get(token_str, 0));
 	          var last_ch = Char.escaped(Caml_string.get(token_str, token_str.length - 1 | 0));
-	          var first_match = +ident_regexp.test(first_ch);
-	          var last_match = +ident_regexp.test(last_ch);
+	          var first_match = +token_regexp.test(first_ch);
+	          var last_match = +token_regexp.test(last_ch);
 	          var token_str$1 = first_match ? token_str : $$String.sub(token_str, 1, token_str.length - 1 | 0);
 	          if (last_match === /* false */0 && token_str$1.length > 0) {
 	            var r = $$String.sub(token_str$1, 0, token_str$1.length - 1 | 0);
@@ -281,7 +284,7 @@
 	  var match = getToken(codeMirror, cur);
 	  var token = match[2];
 	  var end_ = match[1];
-	  var start = match[0];
+	  var start = match[0] + 1 | 0;
 	  if (token !== "") {
 	    return postMessage(/* CompletePrefix */Block.__(3, [
 	                    start,
@@ -435,15 +438,9 @@
 	              }));
 	}
 
-	function setCodeMirrorRef(self, codeMirrorInstance, param) {
+	function setCodeMirrorRef(_, codeMirrorInstance, param) {
 	  var state = param[/* state */4];
 	  var f = codeMirrorInstance === null ? /* None */0 : [codeMirrorInstance];
-	  if (codeMirrorInstance !== null) {
-	    var codeMirror = codeMirrorInstance.getCodeMirror();
-	    codeMirror.on("mousedown", (function (_, _$1) {
-	            return onChange(self, codeMirror.getValue());
-	          }));
-	  }
 	  return /* SilentUpdate */Block.__(1, [/* record */[
 	              /* console */state[/* console */0],
 	              /* codeState */state[/* codeState */1],
@@ -474,47 +471,48 @@
 	                        left: left,
 	                        top: top
 	                      });
-	                  var x = List.hd(List.rev($$Array.to_list(codeMirror.getLineTokens(pos.line))));
-	                  var end2_ = codeMirror.charCoords({
-	                        ch: x.start,
-	                        line: x.end
-	                      });
-	                  if (end2_.right > left) {
-	                    var pos$1 = codeMirror.coordsChar({
-	                          left: left,
-	                          top: top
+	                  var l = List.rev($$Array.to_list(codeMirror.getLineTokens(pos.line)));
+	                  if (List.length(l) > 0) {
+	                    var x = List.hd(l);
+	                    var end2_ = codeMirror.charCoords({
+	                          ch: x.end,
+	                          line: pos.line
 	                        });
-	                    if (pos$1.outside) {
-	                      return Curry._2(update, setTooltip, /* None */0);
+	                    if (end2_.right >= left) {
+	                      if (pos.outside) {
+	                        return Curry._2(update, setTooltip, /* None */0);
+	                      } else {
+	                        var match = getToken(codeMirror, pos);
+	                        var startChar = codeMirror.charCoords({
+	                              ch: match[0],
+	                              line: pos.line
+	                            });
+	                        var start = startChar.left;
+	                        var top$1 = startChar.bottom;
+	                        postMessage(/* TypeExpression */Block.__(2, [
+	                                  pos.line + 1 | 0,
+	                                  pos.ch,
+	                                  match[2]
+	                                ])).then((function (response) {
+	                                var info = response.type;
+	                                if (info === "") {
+	                                  Curry._2(update, setTooltip, /* None */0);
+	                                } else {
+	                                  Curry._2(update, setTooltip, /* Some */[/* tuple */[
+	                                          info,
+	                                          top$1,
+	                                          start
+	                                        ]]);
+	                                }
+	                                return Promise.resolve(response);
+	                              }));
+	                        return /* () */0;
+	                      }
 	                    } else {
-	                      var match = getToken(codeMirror, pos$1);
-	                      var startChar = codeMirror.charCoords({
-	                            ch: match[0],
-	                            line: pos$1.line
-	                          });
-	                      var start = startChar.left;
-	                      var top$1 = startChar.bottom;
-	                      postMessage(/* TypeExpression */Block.__(2, [
-	                                pos$1.line + 1 | 0,
-	                                pos$1.ch,
-	                                match[2]
-	                              ])).then((function (response) {
-	                              var info = response.type;
-	                              if (info === "") {
-	                                Curry._2(update, setTooltip, /* None */0);
-	                              } else {
-	                                Curry._2(update, setTooltip, /* Some */[/* tuple */[
-	                                        info,
-	                                        top$1,
-	                                        start
-	                                      ]]);
-	                              }
-	                              return Promise.resolve(response);
-	                            }));
-	                      return /* () */0;
+	                      return Curry._2(update, setTooltip, /* None */0);
 	                    }
 	                  } else {
-	                    return Curry._2(update, setTooltip, /* None */0);
+	                    return 0;
 	                  }
 	                } else {
 	                  return 0;
@@ -522,12 +520,12 @@
 	              }));
 	}
 
-	function onClick(self) {
-	  console.log("CLICKED...");
-	  var update = self[/* update */1];
-	  return Curry._2(update, codeMirrorAction, (function (codeMirror) {
-	                return onChange(self, codeMirror.getValue());
-	              }));
+	function onClick(self, _, param) {
+	  var ref = param[/* state */4][/* codeMirrorRef */3];
+	  if (ref) {
+	    onChange(self, ref[0].getCodeMirror().getValue());
+	  }
+	  return /* NoUpdate */0;
 	}
 
 	function make$1(value, _) {
@@ -576,6 +574,9 @@
 	        tmp$1 = React.createElement("div", undefined);
 	      }
 	      return React.createElement("div", {
+	                  onClick: Curry._1(self[/* update */1], (function (param, param$1) {
+	                          return onClick(self, param, param$1);
+	                        })),
 	                  onMouseMove: debounceReactEvent((function (param) {
 	                          return onMouseMove(self, param);
 	                        }), 300)
@@ -613,7 +614,7 @@
 	  /* highlightLocations */highlightLocations,
 	  /* removeMarks */removeMarks,
 	  /* codeMirrorAction */codeMirrorAction,
-	  /* ident_regexp */ident_regexp,
+	  /* token_regexp */token_regexp,
 	  /* getToken */getToken,
 	  /* autocompleteSuggestions */autocompleteSuggestions,
 	  /* console */$$console,

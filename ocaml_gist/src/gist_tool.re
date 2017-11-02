@@ -202,23 +202,23 @@ module Gist = {
     };
     ReasonReact.NoUpdate
   };
-  let ident_regexp = [%bs.re "/^[a-zA-Z_.]+/"];
+  let token_regexp = [%bs.re "/^[0-9a-zA-Z_.\"\[\]]+/"];
   type pos = Js.t {. line : int, ch : int, outside : bool, xRel : float};
   let getToken editor (pos: pos) => {
     let lineTokens = editor##getLineTokens pos##line;
-
     /* TODO: change characters that are not [_.a-zA-Z0-9] into separate space entries */
     let start = ref 0;
     let end_ = ref 0;
     let rec it items result isCurrentToken => {
       switch items {
         | [token, ...tl] => {
-          let isCurrent = if (pos##ch >= token##start && pos##ch <= token##_end) {
+          let isCurrent = if (pos##ch >= token##start && pos##ch < token##_end) {
             true
           }
           else {
             isCurrentToken
           };
+
           let token_str = String.trim token##string;
           switch token_str  {
             | "" => {
@@ -231,12 +231,15 @@ module Gist = {
               }
             }
             | _ => {
-              start := token##start + 1;
-              end_ := token##_end + 1;
+              let t = token##string;
+              if (t != "]" && t != ")") {
+                start := token##start;
+                end_ := token##_end + 1;
+              };
               let first_ch = Char.escaped (token_str.[0]);
               let last_ch = Char.escaped (token_str.[(String.length token_str) - 1]);
-              let first_match = Js.Re.test first_ch ident_regexp;
-              let last_match = Js.Re.test last_ch ident_regexp;
+              let first_match = Js.Re.test first_ch token_regexp;
+              let last_match = Js.Re.test last_ch token_regexp;
               let token_str = if (first_match == false) {
                 String.sub token_str 1 ((String.length token_str) - 1)
               } else {
@@ -262,6 +265,7 @@ module Gist = {
   let autocompleteSuggestions codeMirror => {
     let cur = codeMirror##getCursor ();
     let (start, end_, token) = getToken codeMirror cur;
+    let start = start + 1;
     if (token != "") {
       JsPromise.(
         CodeExecution.postMessage (CompletePrefix start end_ token) |>
@@ -395,18 +399,6 @@ module Gist = {
   };
   let setCodeMirrorRef self codeMirrorInstance  {ReasonReact.state: state} => {
     let f = Js.Null.to_opt codeMirrorInstance;
-    switch f {
-      | Some ref => {
-          let ref = ReasonReact.refToJsObj ref;
-          let codeMirror = ref##getCodeMirror();
-          codeMirror##on "mousedown" (fun _ _ => {
-            onChange self (codeMirror##getValue ())
-          })
-        }
-      | None => ()
-    };
-
-
     ReasonReact.SilentUpdate {
       ...state,
       codeMirrorRef: f
@@ -424,45 +416,45 @@ module Gist = {
       (
         fun codeMirror => {
           if codeMirror##state##focused {
-
-
             let pos = codeMirror##coordsChar {"left": left, "top": top};
-            let x = List.hd (List.rev (Array.to_list (codeMirror##getLineTokens pos##line)));
-            let end2_ = (codeMirror##charCoords {"ch": x##start, "line": x##_end});
-
-            if (end2_##right > left) {
-              let pos = codeMirror##coordsChar {"left": left, "top": top};
-              if pos##outside {
-                update setTooltip None
-              } else {
-                let (start, end_, token) = getToken codeMirror pos;
-                let startChar =
-                  codeMirror##charCoords {"ch": start, "line": pos##line};
-                let start = startChar##left;
-                let top = startChar##bottom;
-                /* let end_ = (codeMirror##charCoords {"ch": end_, "line": pos##line})##right; */
-                /* print_endline token; */
-                JsPromise.(
-                  CodeExecution.(
-                    postMessage (TypeExpression (pos##line + 1) pos##ch token)
-                  ) |>
-                  then_ (
-                    fun response => {
-                      let info = response##_type;
-                      if (info == "") {
-                        update setTooltip None
-                      } else {
-                        update setTooltip (Some (info, top, start))
-                      };
-                      JsPromise.resolve response
-                    }
-                  )
-                );
-                ()
+            let l = List.rev (Array.to_list (codeMirror##getLineTokens pos##line));
+            if (List.length l > 0) {
+              let x = List.hd l;
+              let end2_ = (codeMirror##charCoords {"ch": x##_end, "line": pos##line});
+              if (end2_##right >= left) {
+                if pos##outside {
+                  update setTooltip None
+                } else {
+                  let (start, end_, token) = getToken codeMirror pos;
+                  let startChar =
+                    codeMirror##charCoords {"ch": start, "line": pos##line};
+                  let start = startChar##left;
+                  let top = startChar##bottom;
+                  /* let end_ = (codeMirror##charCoords {"ch": end_, "line": pos##line})##right; */
+                  /* print_endline token; */
+                  JsPromise.(
+                    CodeExecution.(
+                      postMessage (TypeExpression (pos##line + 1) pos##ch token)
+                    ) |>
+                    then_ (
+                      fun response => {
+                        let info = response##_type;
+                        if (info == "") {
+                          update setTooltip None
+                        } else {
+                          update setTooltip (Some (info, top, start))
+                        };
+                        JsPromise.resolve response
+                      }
+                    )
+                  );
+                  ()
+                }
               }
-            }
-            else {
-              update setTooltip None
+              else {
+
+                update setTooltip None
+              }
             }
           }
         }
@@ -470,18 +462,19 @@ module Gist = {
 
   };
 
-  let onClick self => {
-    print_endline "CLICKED...";
-    let update = self.ReasonReact.update;
-
-    update
-      codeMirrorAction
-      (fun codeMirror => onChange self (codeMirror##getValue ()))
+  let onClick self event {ReasonReact.state: state} => {
+    let ref = state.codeMirrorRef;
+    switch ref {
+    | Some ref =>
+      let ref = ReasonReact.refToJsObj ref;
+      onChange self ((ref##getCodeMirror ())##getValue ());
+    | None => ()
+    };
+    ReasonReact.NoUpdate
   };
 
   let make value::(value: string) children => {
     ...component,
-
     initialState: fun () => {
       console: "",
       errorLocations: [||],
@@ -490,7 +483,7 @@ module Gist = {
       tooltip: None
     },
     render: fun self =>
-      <div onMouseMove=(debounceReactEvent (onMouseMove self) 300)>
+      <div onMouseMove=(debounceReactEvent (onMouseMove self) 300) onClick=(self.update (onClick self))>
         <CodeMirror
           className="og-editor"
           value

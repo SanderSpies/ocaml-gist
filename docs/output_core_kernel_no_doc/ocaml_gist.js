@@ -520,7 +520,7 @@
 	              }));
 	}
 
-	function onClick(self, _, param) {
+	function onFocus(self, _, param) {
 	  var ref = param[/* state */4][/* codeMirrorRef */3];
 	  if (ref) {
 	    onChange(self, ref[0].getCodeMirror().getValue());
@@ -574,8 +574,8 @@
 	        tmp$1 = React.createElement("div", undefined);
 	      }
 	      return React.createElement("div", {
-	                  onClick: Curry._1(self[/* update */1], (function (param, param$1) {
-	                          return onClick(self, param, param$1);
+	                  onFocus: Curry._1(self[/* update */1], (function (param, param$1) {
+	                          return onFocus(self, param, param$1);
 	                        })),
 	                  onMouseMove: debounceReactEvent((function (param) {
 	                          return onMouseMove(self, param);
@@ -624,7 +624,7 @@
 	  /* setCodeMirrorRef */setCodeMirrorRef,
 	  /* setTooltip */setTooltip,
 	  /* onMouseMove */onMouseMove,
-	  /* onClick */onClick,
+	  /* onFocus */onFocus,
 	  /* make */make$1
 	];
 

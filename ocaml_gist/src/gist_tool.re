@@ -462,7 +462,7 @@ module Gist = {
 
   };
 
-  let onClick self event {ReasonReact.state: state} => {
+  let onFocus self event {ReasonReact.state: state} => {
     let ref = state.codeMirrorRef;
     switch ref {
     | Some ref =>
@@ -483,7 +483,7 @@ module Gist = {
       tooltip: None
     },
     render: fun self =>
-      <div onMouseMove=(debounceReactEvent (onMouseMove self) 300) onClick=(self.update (onClick self))>
+      <div onMouseMove=(debounceReactEvent (onMouseMove self) 300) onFocus=(self.update (onFocus self))>
         <CodeMirror
           className="og-editor"
           value

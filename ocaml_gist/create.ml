@@ -2,13 +2,15 @@ open Unix
 
 let execute cmd =
   let s = String.concat " " cmd in
-  print_endline s;
-  let ret = Unix.system s in
-  match ret with
-  | Unix.WEXITED _ -> ()
-  | _ -> failwith (Printf.sprintf "Error: %s" s)
-
-
+  let ret = Unix.open_process_in s in
+  let output = ref "" in
+  (try
+    while true do
+      let l = input_line ret in
+      output := !output ^ l ^ "\n"
+    done
+  with End_of_file -> ());
+  !output
 
 let filtered_files dir = (
   let all_files = Array.to_list (Sys.readdir dir) in
@@ -62,54 +64,20 @@ let buffer = Bytes.create buffer_size in
   close fd_in;
   close fd_out;;
 
-try
+let create_temp_dir () = (
   let tmp = Printf.sprintf "%.30f" (Unix.gettimeofday ()) in
   let tmp_dir = ref (Filename.concat (Filename.get_temp_dir_name ()) tmp) in
   while Sys.file_exists !tmp_dir do
     let tmp = Printf.sprintf "%.30f" (Unix.gettimeofday ()) in
     tmp_dir := Filename.concat (Filename.get_temp_dir_name ()) tmp
   done;
-  let tmp_dir = !tmp_dir in
-  Unix.mkdir tmp_dir 0o755;
-  let owl = Findlib.package_directory "ocaml-webworker" in
-  let og = Findlib.package_directory "ocaml-gist" in
-  let (output, input, deps, libs, useDocs) = Cmdliner.(
-    let output =
-      let doc = "Output folder" in
-      Arg.(value & opt string "." & info ["output"; "o"]  ~doc)
-    in
-    let input =
-      let doc = "Input folder" in
-      Arg.(value & opt string "." & info ["input"; "i"]  ~doc)
-    in
-    let deps =
-      let doc = "Dependency (should be a .cmo/.cma file)" in
-      Arg.(value & opt_all string [] & info ["dependency"; "d"]  ~doc)
-    in
-    let libs =
-      let doc = "Libraries" in
-      Arg.(value & opt_all string [] & info ["library"; "l"]  ~doc)
-    in
-    let useDocs =
-      let doc = "Show documentation (increases filesize considerably)" in
-      Arg.(value & flag & info ["doc"]  ~doc)
-    in
-    let out = ref Filename.current_dir_name in
-    let input_ = ref Filename.current_dir_name in
-    let dependencies = ref [] in
-    let libraries = ref [] in
-    let useDocs_ = ref false in
-    let exec output input deps libs docs = (
-      out := output;
-      input_ := input;
-      dependencies := deps;
-      libraries := libs;
-      useDocs_ := docs;
-    ) in
-    let t = Term.(const exec $ output $ input $ deps $ libs $ useDocs) in
-    ignore(Term.eval (t, Term.info "og-create"));
-    (!out, !input_, !dependencies, !libraries, !useDocs_)
-  ) in
+  Unix.mkdir !tmp_dir 0o755;
+  !tmp_dir
+)
+
+let do_stuff owl og output input libs deps useDocs = (
+  let tmp_dir = create_temp_dir () in
+
   let owl_files = filtered_files owl in
   let og_files = filtered_files og in
 
@@ -138,7 +106,7 @@ try
   let deps2 = List.fold_left (fun deps acc -> deps ^ "-jsopt \" -I . --file " ^ acc ^ "\"") "" deps in
 
   (* create the actual webworker *)
-  execute ([ "cd " ^ tmp_dir; "&&";"jsoo_mktop";
+  let result = execute ([ "cd " ^ tmp_dir; "&&";"jsoo_mktop";
             "-jsopt"; "\"--disable genprim\"";
             (* "-g"; *)
             (* "-jsopt"; "--source-map-inline"; *)
@@ -156,7 +124,9 @@ try
             deps2;
             (Filename.concat owl "ocaml_webworker.cma");
             "-o";(Filename.concat tmp_dir "ocaml_webworker.js");
-          ]);
+          ])
+  in
+  print_endline result;
 
   (* create the cmi files *)
   (* TODO: use cmti files instead when available *)
@@ -175,15 +145,70 @@ try
     ) libs in
   (if List.length non_js > 0 then
     (if useDocs then
-      (execute (["cd"; tmp_dir; "&&"; "cmti-bundler"] @ non_js);
-      execute (["cd"; tmp_dir; "&&"; "jsoo_mkcmis"; "./cmtis/*.cmi"] @ js @ cmi_files @ ["-o";Filename.concat tmp_dir "cmi.js"]))
+      let cmti_bundler_results = execute (["cd"; tmp_dir; "&&"; "cmti-bundler"] @ non_js) in
+      print_endline cmti_bundler_results;
+      let cmi_result = execute (["cd"; tmp_dir; "&&"; "jsoo_mkcmis"; "./cmtis/*.cmi"] @ js @ cmi_files @ ["-o";Filename.concat tmp_dir "cmi.js"]) in
+      print_endline cmi_result
     else
-      execute (["cd"; tmp_dir; "&&"; "jsoo_mkcmis"] @ non_js @ cmi_files @ ["-o";Filename.concat tmp_dir "cmi.js"]);
+      let cmi_result = execute (["cd"; tmp_dir; "&&"; "jsoo_mkcmis"] @ non_js @ cmi_files @ ["-o";Filename.concat tmp_dir "cmi.js"]) in
+      print_endline cmi_result
     )
   else
-    execute (["cd"; tmp_dir; "&&"; "jsoo_mkcmis"] @ js @ cmi_files @ ["-o";Filename.concat tmp_dir "cmi.js"]));
-  execute (["mv"; Filename.concat tmp_dir "*.js"; Filename.concat tmp_dir "*.html"; Filename.concat tmp_dir "*.svg"; Filename.concat tmp_dir "*.css"; output])
-  (* execute ["cat"; "output.js"; ">>"; Filename.concat output "cmi.js"] *)
+    (let cmi_js = execute (["cd"; tmp_dir; "&&"; "jsoo_mkcmis"] @ js @ cmi_files @ ["-o";Filename.concat tmp_dir "cmi.js"]) in
+    print_endline cmi_js));
 
-with
-| Findlib.No_such_package (p, msg) -> print_endline (p ^ ":" ^ msg)
+  let mv_result = execute (["mv"; Filename.concat tmp_dir "*.js"; Filename.concat tmp_dir "*.html"; Filename.concat tmp_dir "*.svg"; Filename.concat tmp_dir "*.css"; output]) in
+  print_endline mv_result;
+
+)
+
+let create () = (
+  try
+    let owl = Findlib.package_directory "ocaml-webworker" in
+    let og = Findlib.package_directory "ocaml-gist" in
+    Cmdliner.(
+      let output =
+        let doc = "Output folder" in
+        Arg.(value & opt dir "." & info ["output"; "o"]  ~doc)
+      in
+      let input =
+        let doc = "Input folder" in
+        Arg.(value & opt dir "." & info ["input"; "i"]  ~doc)
+      in
+      let deps =
+        let doc = "Dependency (should be a .cmo/.cma file)" in
+        Arg.(value & opt_all file [] & info ["dependency"; "d"]  ~doc)
+      in
+      let libs =
+        let doc = "Libraries" in
+        Arg.(value & opt_all string [] & info ["library"; "l"]  ~doc)
+      in
+      let useDocs =
+        let doc = "Show documentation (increases filesize considerably)" in
+        Arg.(value & flag & info ["doc"]  ~doc)
+      in
+      let out = ref Filename.current_dir_name in
+      let input_ = ref Filename.current_dir_name in
+      let dependencies = ref [] in
+      let libraries = ref [] in
+      let useDocs_ = ref false in
+      let exec output input deps libs docs = (
+        out := output;
+        input_ := input;
+        dependencies := deps;
+        libraries := libs;
+        useDocs_ := docs;
+        if !out = "." && !input_ = "." && !dependencies = [] && !libraries = [] && !useDocs_ = false then
+          ignore(Unix.system "og-create --help") (* sue me *)
+        else (
+          do_stuff owl og !out !input_ !libraries !dependencies !useDocs_
+        )
+      ) in
+      let t = Term.(const exec $ output $ input $ deps $ libs $ useDocs) in
+      ignore(Term.eval (t, Term.info "og-create"));
+    )
+  with
+  | Findlib.No_such_package (p, msg) -> print_endline (p ^ ":" ^ msg)
+)
+
+let () = create ()

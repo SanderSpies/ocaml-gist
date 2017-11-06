@@ -12,6 +12,8 @@ Demo 1: https://sanderspies.github.io/ocaml-gist/output_stdlib/index.html
 
 Demo 2: https://sanderspies.github.io/ocaml-gist/output_base/index.html
 
+Do note that everything is still a work in progress.
+
 Usage
 ---
 Requirements: OCaml 4.04.2 for now. 4.02.3 should work also, but not tested
@@ -53,14 +55,14 @@ or via jbuilder:
 ))
 ```
 
-(see also https://github.com/SanderSpies/ocaml-gist/blob/master/test/jbuild)
+(see also https://github.com/SanderSpies/ocaml-gist/test/jbuild)
 
 Run the `output_folder` in a webserver and go to the `index.html` page on
 your website.
 
 Acknowledgements
 ---
-OCaml Labs - for sponsoring work on this
+OCaml Labs - for sponsoring my work on this
 Merlin - most of the code in ocaml_webworker/merlin_lite comes from Merlin
 Js_of_ocaml - ocaml_webworker/cmti_bundler.ml is based on code from Jsoo
 

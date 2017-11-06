@@ -1,0 +1,16 @@
+(executable (
+  (name ocaml_gist_tests)
+  (libraries (ocaml-gist alcotest))
+))
+
+(alias
+ ((name   runtest)
+  (package ocaml-gist)
+  (deps   (ocaml_gist_tests.exe))
+  (action (progn
+    (system "mkdir input_stdlib")
+    (system "mkdir output_stdlib")
+    (run ${<})
+  ))
+
+))

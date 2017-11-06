@@ -10,6 +10,7 @@
   (deps (foo.cma))
   (action (progn
     (system "cp -R ../../../test/input_base ./input_base")
+    (system "mkdir output_base")
     (run og-create
          --input input_base
          --output output_base
@@ -28,6 +29,7 @@
   (deps (foo.cma))
   (action (progn
     (system "cp -R ../../../test/input_core_kernel ./input_core_kernel")
+    (system "mkdir output_core_kernel")
     (run og-create
          --input input_core_kernel
          --output output_core_kernel
@@ -51,6 +53,7 @@
   (deps (foo.cma))
   (action (progn
     (system "cp -R ../../../test/input_core_kernel ./input_core_kernel")
+    (system "mkdir output_core_kernel_no_doc")
     (run og-create
          --input input_core_kernel
          --output output_core_kernel_no_doc
@@ -73,6 +76,7 @@
   (deps (foo.cma))
   (action (progn
     (system "cp -R ../../../test/input_lwt ./input_lwt")
+    (system "mkdir output_lwt")
     (run og-create
          --input input_lwt
          --output output_lwt
@@ -91,6 +95,7 @@
   (deps (foo.cma))
   (action (progn
     (system "cp -R ../../../test/input_stdlib ./input_stdlib")
+    (system "mkdir output_stdlib")
     (run og-create
          --lib stdlib
          --input input_stdlib

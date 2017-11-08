@@ -1,0 +1,58 @@
+body {
+  background-color: #e8e4d9;
+  font-family: Lato, sans-serif;
+}
+
+header {
+  background-color: #a29268;
+  padding: 15px;
+  text-align: center;
+  font-size: 36px;
+}
+
+.content {
+  display: flex;
+  padding: 0;
+}
+
+.content section {
+  flex: 1;
+  align-items: flex-start;
+}
+
+.gist-container {
+  margin: 30px;
+  text-align: center;
+}
+
+.gist-container > div {
+  text-align: left;
+  display:inline-block;
+  overflow: hidden;
+  max-width: 400px;
+  padding-left: 15px;
+}
+
+.gist-container > p {
+  padding: 0 15px 0 40px;
+  max-width: 400px;
+  display:inline-block;
+  vertical-align: top;
+  text-align: right;
+}
+h1, h2, h3, p {
+  text-align: center;
+}
+.bullets {
+  width: 400px;
+}
+
+.bullets code {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: inline-block;
+}
+
+.bullets li {
+  margin-bottom:10px;
+}

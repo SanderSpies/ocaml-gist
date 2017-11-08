@@ -362,10 +362,6 @@ body {
   z-index:10000;
 }
 
-.og-editor {
-  margin-top: 10px;
-}
-
 .og-editor .CodeMirror{
   margin: 0;
   overflow: hidden;

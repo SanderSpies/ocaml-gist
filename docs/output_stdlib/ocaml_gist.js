@@ -106,21 +106,21 @@
 	  uniqueId[0] = uniqueId[0] + 1 | 0;
 	  var uniqueId$1 = uniqueId[0];
 	  switch (message.tag | 0) {
-	    case 0 : 
+	    case 0 :
 	        worker.postMessage({
 	              msgId: uniqueId$1,
 	              msgType: "type",
 	              code: message[0]
 	            });
 	        break;
-	    case 1 : 
+	    case 1 :
 	        worker.postMessage({
 	              msgId: uniqueId$1,
 	              msgType: "execute",
 	              code: message[0]
 	            });
 	        break;
-	    case 2 : 
+	    case 2 :
 	        worker.postMessage({
 	              msgId: uniqueId$1,
 	              msgType: "type_expr",
@@ -131,7 +131,7 @@
 	              posFname: ""
 	            });
 	        break;
-	    case 3 : 
+	    case 3 :
 	        worker.postMessage({
 	              msgId: uniqueId$1,
 	              msgType: "complete_prefix",
@@ -142,7 +142,7 @@
 	              posFname: ""
 	            });
 	        break;
-	    
+
 	  }
 	  return new Promise((function (resolve, _) {
 	                awaitingResponses.set(uniqueId$1, resolve);
@@ -238,7 +238,7 @@
 	            _result = "";
 	            _items = tl;
 	            continue ;
-	            
+
 	          }
 	        } else {
 	          var t = token.string;
@@ -257,13 +257,13 @@
 	            _result = result + r;
 	            _items = tl;
 	            continue ;
-	            
+
 	          } else {
 	            _isCurrentToken = isCurrent;
 	            _result = result + token_str$1;
 	            _items = tl;
 	            continue ;
-	            
+
 	          }
 	        }
 	      } else {
@@ -346,23 +346,23 @@
 	  var msgType = response.msgType;
 	  var exit = 0;
 	  switch (msgType) {
-	    case "NoSyntaxErrors" : 
+	    case "NoSyntaxErrors" :
 	        Curry._2(update, $$console, /* tuple */[
 	              /* Executable */0,
 	              ""
 	            ]);
 	        break;
-	    case "Output" : 
+	    case "Output" :
 	        Curry._2(update, $$console, /* tuple */[
 	              /* Error */1,
 	              response.message
 	            ]);
 	        break;
-	    case "LexerError" : 
-	    case "SyntaxError" : 
-	    case "TypecoreError" : 
-	    case "TypemodError" : 
-	    case "TypetexpError" : 
+	    case "LexerError" :
+	    case "SyntaxError" :
+	    case "TypecoreError" :
+	    case "TypemodError" :
+	    case "TypetexpError" :
 	        exit = 1;
 	        break;
 	    default:
@@ -534,7 +534,7 @@
 	      var match = self[/* state */4][/* codeState */1];
 	      var tmp;
 	      switch (match) {
-	        case 0 : 
+	        case 0 :
 	            tmp = React.createElement("div", {
 	                  className: "og-icon og-execute-icon",
 	                  onClick: (function (param) {
@@ -542,22 +542,22 @@
 	                    })
 	                });
 	            break;
-	        case 1 : 
+	        case 1 :
 	            tmp = React.createElement("div", {
 	                  className: "og-icon og-error-icon"
 	                });
 	            break;
-	        case 2 : 
+	        case 2 :
 	            tmp = React.createElement("div", {
 	                  className: "og-icon og-busy-icon"
 	                });
 	            break;
-	        case 3 : 
+	        case 3 :
 	            tmp = React.createElement("div", {
 	                  className: "og-icon og-result-icon"
 	                });
 	            break;
-	        
+
 	      }
 	      var match$1 = self[/* state */4][/* tooltip */4];
 	      var tmp$1;
@@ -684,42 +684,42 @@
 	    exit = 1;
 	  } else {
 	    switch (c) {
-	      case 8 : 
+	      case 8 :
 	          return "\\b";
-	      case 9 : 
+	      case 9 :
 	          return "\\t";
-	      case 10 : 
+	      case 10 :
 	          return "\\n";
-	      case 0 : 
-	      case 1 : 
-	      case 2 : 
-	      case 3 : 
-	      case 4 : 
-	      case 5 : 
-	      case 6 : 
-	      case 7 : 
-	      case 11 : 
-	      case 12 : 
+	      case 0 :
+	      case 1 :
+	      case 2 :
+	      case 3 :
+	      case 4 :
+	      case 5 :
+	      case 6 :
+	      case 7 :
+	      case 11 :
+	      case 12 :
 	          exit = 1;
 	          break;
-	      case 13 : 
+	      case 13 :
 	          return "\\r";
-	      
+
 	    }
 	  }
 	  switch (exit) {
-	    case 1 : 
+	    case 1 :
 	        var s = new Array(4);
 	        s[0] = /* "\\" */92;
 	        s[1] = 48 + (c / 100 | 0) | 0;
 	        s[2] = 48 + (c / 10 | 0) % 10 | 0;
 	        s[3] = 48 + c % 10 | 0;
 	        return Caml_string.bytes_to_string(s);
-	    case 2 : 
+	    case 2 :
 	        var s$1 = new Array(1);
 	        s$1[0] = c;
 	        return Caml_string.bytes_to_string(s$1);
-	    
+
 	  }
 	}
 
@@ -1087,7 +1087,7 @@
 	      _param = param[1];
 	      _len = len + 1 | 0;
 	      continue ;
-	      
+
 	    } else {
 	      return len;
 	    }
@@ -1133,7 +1133,7 @@
 	          _n = n$1 - 1 | 0;
 	          _l = l$1[1];
 	          continue ;
-	          
+
 	        } else {
 	          return l$1[0];
 	        }
@@ -1158,7 +1158,7 @@
 	      ];
 	      _l1 = l1[1];
 	      continue ;
-	      
+
 	    } else {
 	      return l2;
 	    }
@@ -1218,7 +1218,7 @@
 	        accu
 	      ];
 	      continue ;
-	      
+
 	    } else {
 	      return accu;
 	    }
@@ -1232,7 +1232,7 @@
 	      Curry._1(f, param[0]);
 	      _param = param[1];
 	      continue ;
-	      
+
 	    } else {
 	      return /* () */0;
 	    }
@@ -1251,7 +1251,7 @@
 	      _param = param[1];
 	      _i = i + 1 | 0;
 	      continue ;
-	      
+
 	    } else {
 	      return /* () */0;
 	    }
@@ -1266,7 +1266,7 @@
 	      _l = l[1];
 	      _accu = Curry._2(f, accu, l[0]);
 	      continue ;
-	      
+
 	    } else {
 	      return accu;
 	    }
@@ -1322,7 +1322,7 @@
 	          accu
 	        ];
 	        continue ;
-	        
+
 	      } else {
 	        throw [
 	              Caml_builtin_exceptions.invalid_argument,
@@ -1350,7 +1350,7 @@
 	        _l2 = l2[1];
 	        _l1 = l1[1];
 	        continue ;
-	        
+
 	      } else {
 	        throw [
 	              Caml_builtin_exceptions.invalid_argument,
@@ -1379,7 +1379,7 @@
 	        _l1 = l1[1];
 	        _accu = Curry._3(f, accu, l1[0], l2[0]);
 	        continue ;
-	        
+
 	      } else {
 	        throw [
 	              Caml_builtin_exceptions.invalid_argument,
@@ -1424,7 +1424,7 @@
 	      if (Curry._1(p, param[0])) {
 	        _param = param[1];
 	        continue ;
-	        
+
 	      } else {
 	        return /* false */0;
 	      }
@@ -1443,7 +1443,7 @@
 	      } else {
 	        _param = param[1];
 	        continue ;
-	        
+
 	      }
 	    } else {
 	      return /* false */0;
@@ -1461,7 +1461,7 @@
 	          _l2 = l2[1];
 	          _l1 = l1[1];
 	          continue ;
-	          
+
 	        } else {
 	          return /* false */0;
 	        }
@@ -1494,7 +1494,7 @@
 	          _l2 = l2[1];
 	          _l1 = l1[1];
 	          continue ;
-	          
+
 	        }
 	      } else {
 	        throw [
@@ -1520,7 +1520,7 @@
 	      if (Caml_obj.caml_compare(param[0], x)) {
 	        _param = param[1];
 	        continue ;
-	        
+
 	      } else {
 	        return /* true */1;
 	      }
@@ -1539,7 +1539,7 @@
 	      } else {
 	        _param = param[1];
 	        continue ;
-	        
+
 	      }
 	    } else {
 	      return /* false */0;
@@ -1555,7 +1555,7 @@
 	      if (Caml_obj.caml_compare(match[0], x)) {
 	        _param = param[1];
 	        continue ;
-	        
+
 	      } else {
 	        return match[1];
 	      }
@@ -1575,7 +1575,7 @@
 	      } else {
 	        _param = param[1];
 	        continue ;
-	        
+
 	      }
 	    } else {
 	      throw Caml_builtin_exceptions.not_found;
@@ -1590,7 +1590,7 @@
 	      if (Caml_obj.caml_compare(param[0][0], x)) {
 	        _param = param[1];
 	        continue ;
-	        
+
 	      } else {
 	        return /* true */1;
 	      }
@@ -1609,7 +1609,7 @@
 	      } else {
 	        _param = param[1];
 	        continue ;
-	        
+
 	      }
 	    } else {
 	      return /* false */0;
@@ -1661,7 +1661,7 @@
 	      } else {
 	        _param = param[1];
 	        continue ;
-	        
+
 	      }
 	    } else {
 	      throw Caml_builtin_exceptions.not_found;
@@ -1686,11 +1686,11 @@
 	              accu
 	            ];
 	            continue ;
-	            
+
 	          } else {
 	            _param = l;
 	            continue ;
-	            
+
 	          }
 	        } else {
 	          return rev_append(accu, /* [] */0);
@@ -1717,7 +1717,7 @@
 	          yes
 	        ];
 	        continue ;
-	        
+
 	      } else {
 	        _param = l$1;
 	        _no = /* :: */[
@@ -1725,7 +1725,7 @@
 	          no
 	        ];
 	        continue ;
-	        
+
 	      }
 	    } else {
 	      return /* tuple */[
@@ -1817,7 +1817,7 @@
 	        _l = l[1];
 	        _k = k - 1 | 0;
 	        continue ;
-	        
+
 	      } else {
 	        throw [
 	              Caml_builtin_exceptions.assert_failure,
@@ -1978,7 +1978,7 @@
 	              ];
 	              _l1 = l1[1];
 	              continue ;
-	              
+
 	            } else {
 	              _accu = /* :: */[
 	                h2,
@@ -1986,7 +1986,7 @@
 	              ];
 	              _l2 = l2$1[1];
 	              continue ;
-	              
+
 	            }
 	          } else {
 	            return rev_append(l1, accu);
@@ -1996,7 +1996,7 @@
 	        }
 	      };
 	    }
-	    
+
 	  };
 	  var rev_sort = function (n, l) {
 	    var exit = 0;
@@ -2141,7 +2141,7 @@
 	              ];
 	              _l1 = l1[1];
 	              continue ;
-	              
+
 	            } else {
 	              _accu = /* :: */[
 	                h2,
@@ -2149,7 +2149,7 @@
 	              ];
 	              _l2 = l2$1[1];
 	              continue ;
-	              
+
 	            }
 	          } else {
 	            return rev_append(l1, accu);
@@ -2159,7 +2159,7 @@
 	        }
 	      };
 	    }
-	    
+
 	  };
 	  var len = length(l);
 	  if (len < 2) {
@@ -2404,7 +2404,7 @@
 	                ];
 	                _l1 = t1;
 	                continue ;
-	                
+
 	              } else {
 	                _accu = /* :: */[
 	                  h2,
@@ -2412,7 +2412,7 @@
 	                ];
 	                _l2 = t2;
 	                continue ;
-	                
+
 	              }
 	            } else {
 	              _accu = /* :: */[
@@ -2422,7 +2422,7 @@
 	              _l2 = t2;
 	              _l1 = t1;
 	              continue ;
-	              
+
 	            }
 	          } else {
 	            return rev_append(l1, accu);
@@ -2432,7 +2432,7 @@
 	        }
 	      };
 	    }
-	    
+
 	  };
 	  var rev_sort = function (n, l) {
 	    var exit = 0;
@@ -2668,7 +2668,7 @@
 	                ];
 	                _l1 = t1;
 	                continue ;
-	                
+
 	              } else {
 	                _accu = /* :: */[
 	                  h2,
@@ -2676,7 +2676,7 @@
 	                ];
 	                _l2 = t2;
 	                continue ;
-	                
+
 	              }
 	            } else {
 	              _accu = /* :: */[
@@ -2686,7 +2686,7 @@
 	              _l2 = t2;
 	              _l1 = t1;
 	              continue ;
-	              
+
 	            }
 	          } else {
 	            return rev_append(l1, accu);
@@ -2696,7 +2696,7 @@
 	        }
 	      };
 	    }
-	    
+
 	  };
 	  var len = length(l);
 	  if (len < 2) {
@@ -2784,7 +2784,7 @@
 	        _args = Caml_array.caml_array_sub(args, arity$1, -d | 0);
 	        _f = f.apply(null, Caml_array.caml_array_sub(args, 0, arity$1));
 	        continue ;
-	        
+
 	      } else {
 	        return (function(f,args){
 	        return function (x) {
@@ -2803,34 +2803,34 @@
 	    return app(o, /* array */[a0]);
 	  } else {
 	    switch (arity) {
-	      case 0 : 
-	      case 1 : 
+	      case 0 :
+	      case 1 :
 	          return o(a0);
-	      case 2 : 
+	      case 2 :
 	          return (function (param) {
 	              return o(a0, param);
 	            });
-	      case 3 : 
+	      case 3 :
 	          return (function (param, param$1) {
 	              return o(a0, param, param$1);
 	            });
-	      case 4 : 
+	      case 4 :
 	          return (function (param, param$1, param$2) {
 	              return o(a0, param, param$1, param$2);
 	            });
-	      case 5 : 
+	      case 5 :
 	          return (function (param, param$1, param$2, param$3) {
 	              return o(a0, param, param$1, param$2, param$3);
 	            });
-	      case 6 : 
+	      case 6 :
 	          return (function (param, param$1, param$2, param$3, param$4) {
 	              return o(a0, param, param$1, param$2, param$3, param$4);
 	            });
-	      case 7 : 
+	      case 7 :
 	          return (function (param, param$1, param$2, param$3, param$4, param$5) {
 	              return o(a0, param, param$1, param$2, param$3, param$4, param$5);
 	            });
-	      
+
 	    }
 	  }
 	}
@@ -2863,32 +2863,32 @@
 	              ]);
 	  } else {
 	    switch (arity) {
-	      case 0 : 
-	      case 1 : 
+	      case 0 :
+	      case 1 :
 	          return app(o(a0), /* array */[a1]);
-	      case 2 : 
+	      case 2 :
 	          return o(a0, a1);
-	      case 3 : 
+	      case 3 :
 	          return (function (param) {
 	              return o(a0, a1, param);
 	            });
-	      case 4 : 
+	      case 4 :
 	          return (function (param, param$1) {
 	              return o(a0, a1, param, param$1);
 	            });
-	      case 5 : 
+	      case 5 :
 	          return (function (param, param$1, param$2) {
 	              return o(a0, a1, param, param$1, param$2);
 	            });
-	      case 6 : 
+	      case 6 :
 	          return (function (param, param$1, param$2, param$3) {
 	              return o(a0, a1, param, param$1, param$2, param$3);
 	            });
-	      case 7 : 
+	      case 7 :
 	          return (function (param, param$1, param$2, param$3, param$4) {
 	              return o(a0, a1, param, param$1, param$2, param$3, param$4);
 	            });
-	      
+
 	    }
 	  }
 	}
@@ -2923,31 +2923,31 @@
 	              ]);
 	  } else {
 	    switch (arity) {
-	      case 0 : 
-	      case 1 : 
+	      case 0 :
+	      case 1 :
 	          exit = 1;
 	          break;
-	      case 2 : 
+	      case 2 :
 	          return app(o(a0, a1), /* array */[a2]);
-	      case 3 : 
+	      case 3 :
 	          return o(a0, a1, a2);
-	      case 4 : 
+	      case 4 :
 	          return (function (param) {
 	              return o(a0, a1, a2, param);
 	            });
-	      case 5 : 
+	      case 5 :
 	          return (function (param, param$1) {
 	              return o(a0, a1, a2, param, param$1);
 	            });
-	      case 6 : 
+	      case 6 :
 	          return (function (param, param$1, param$2) {
 	              return o(a0, a1, a2, param, param$1, param$2);
 	            });
-	      case 7 : 
+	      case 7 :
 	          return (function (param, param$1, param$2, param$3) {
 	              return o(a0, a1, a2, param, param$1, param$2, param$3);
 	            });
-	      
+
 	    }
 	  }
 	  if (exit === 1) {
@@ -2956,7 +2956,7 @@
 	                a2
 	              ]);
 	  }
-	  
+
 	}
 
 	function _3(o, a0, a1, a2) {
@@ -2990,32 +2990,32 @@
 	              ]);
 	  } else {
 	    switch (arity) {
-	      case 0 : 
-	      case 1 : 
+	      case 0 :
+	      case 1 :
 	          exit = 1;
 	          break;
-	      case 2 : 
+	      case 2 :
 	          return app(o(a0, a1), /* array */[
 	                      a2,
 	                      a3
 	                    ]);
-	      case 3 : 
+	      case 3 :
 	          return app(o(a0, a1, a2), /* array */[a3]);
-	      case 4 : 
+	      case 4 :
 	          return o(a0, a1, a2, a3);
-	      case 5 : 
+	      case 5 :
 	          return (function (param) {
 	              return o(a0, a1, a2, a3, param);
 	            });
-	      case 6 : 
+	      case 6 :
 	          return (function (param, param$1) {
 	              return o(a0, a1, a2, a3, param, param$1);
 	            });
-	      case 7 : 
+	      case 7 :
 	          return (function (param, param$1, param$2) {
 	              return o(a0, a1, a2, a3, param, param$1, param$2);
 	            });
-	      
+
 	    }
 	  }
 	  if (exit === 1) {
@@ -3025,7 +3025,7 @@
 	                a3
 	              ]);
 	  }
-	  
+
 	}
 
 	function _4(o, a0, a1, a2, a3) {
@@ -3060,34 +3060,34 @@
 	              ]);
 	  } else {
 	    switch (arity) {
-	      case 0 : 
-	      case 1 : 
+	      case 0 :
+	      case 1 :
 	          exit = 1;
 	          break;
-	      case 2 : 
+	      case 2 :
 	          return app(o(a0, a1), /* array */[
 	                      a2,
 	                      a3,
 	                      a4
 	                    ]);
-	      case 3 : 
+	      case 3 :
 	          return app(o(a0, a1, a2), /* array */[
 	                      a3,
 	                      a4
 	                    ]);
-	      case 4 : 
+	      case 4 :
 	          return app(o(a0, a1, a2, a3), /* array */[a4]);
-	      case 5 : 
+	      case 5 :
 	          return o(a0, a1, a2, a3, a4);
-	      case 6 : 
+	      case 6 :
 	          return (function (param) {
 	              return o(a0, a1, a2, a3, a4, param);
 	            });
-	      case 7 : 
+	      case 7 :
 	          return (function (param, param$1) {
 	              return o(a0, a1, a2, a3, a4, param, param$1);
 	            });
-	      
+
 	    }
 	  }
 	  if (exit === 1) {
@@ -3098,7 +3098,7 @@
 	                a4
 	              ]);
 	  }
-	  
+
 	}
 
 	function _5(o, a0, a1, a2, a3, a4) {
@@ -3134,37 +3134,37 @@
 	              ]);
 	  } else {
 	    switch (arity) {
-	      case 0 : 
-	      case 1 : 
+	      case 0 :
+	      case 1 :
 	          exit = 1;
 	          break;
-	      case 2 : 
+	      case 2 :
 	          return app(o(a0, a1), /* array */[
 	                      a2,
 	                      a3,
 	                      a4,
 	                      a5
 	                    ]);
-	      case 3 : 
+	      case 3 :
 	          return app(o(a0, a1, a2), /* array */[
 	                      a3,
 	                      a4,
 	                      a5
 	                    ]);
-	      case 4 : 
+	      case 4 :
 	          return app(o(a0, a1, a2, a3), /* array */[
 	                      a4,
 	                      a5
 	                    ]);
-	      case 5 : 
+	      case 5 :
 	          return app(o(a0, a1, a2, a3, a4), /* array */[a5]);
-	      case 6 : 
+	      case 6 :
 	          return o(a0, a1, a2, a3, a4, a5);
-	      case 7 : 
+	      case 7 :
 	          return (function (param) {
 	              return o(a0, a1, a2, a3, a4, a5, param);
 	            });
-	      
+
 	    }
 	  }
 	  if (exit === 1) {
@@ -3176,7 +3176,7 @@
 	                a5
 	              ]);
 	  }
-	  
+
 	}
 
 	function _6(o, a0, a1, a2, a3, a4, a5) {
@@ -3213,11 +3213,11 @@
 	              ]);
 	  } else {
 	    switch (arity) {
-	      case 0 : 
-	      case 1 : 
+	      case 0 :
+	      case 1 :
 	          exit = 1;
 	          break;
-	      case 2 : 
+	      case 2 :
 	          return app(o(a0, a1), /* array */[
 	                      a2,
 	                      a3,
@@ -3225,29 +3225,29 @@
 	                      a5,
 	                      a6
 	                    ]);
-	      case 3 : 
+	      case 3 :
 	          return app(o(a0, a1, a2), /* array */[
 	                      a3,
 	                      a4,
 	                      a5,
 	                      a6
 	                    ]);
-	      case 4 : 
+	      case 4 :
 	          return app(o(a0, a1, a2, a3), /* array */[
 	                      a4,
 	                      a5,
 	                      a6
 	                    ]);
-	      case 5 : 
+	      case 5 :
 	          return app(o(a0, a1, a2, a3, a4), /* array */[
 	                      a5,
 	                      a6
 	                    ]);
-	      case 6 : 
+	      case 6 :
 	          return app(o(a0, a1, a2, a3, a4, a5), /* array */[a6]);
-	      case 7 : 
+	      case 7 :
 	          return o(a0, a1, a2, a3, a4, a5, a6);
-	      
+
 	    }
 	  }
 	  if (exit === 1) {
@@ -3260,7 +3260,7 @@
 	                a6
 	              ]);
 	  }
-	  
+
 	}
 
 	function _7(o, a0, a1, a2, a3, a4, a5, a6) {
@@ -3298,11 +3298,11 @@
 	              ]);
 	  } else {
 	    switch (arity) {
-	      case 0 : 
-	      case 1 : 
+	      case 0 :
+	      case 1 :
 	          exit = 1;
 	          break;
-	      case 2 : 
+	      case 2 :
 	          return app(o(a0, a1), /* array */[
 	                      a2,
 	                      a3,
@@ -3311,7 +3311,7 @@
 	                      a6,
 	                      a7
 	                    ]);
-	      case 3 : 
+	      case 3 :
 	          return app(o(a0, a1, a2), /* array */[
 	                      a3,
 	                      a4,
@@ -3319,27 +3319,27 @@
 	                      a6,
 	                      a7
 	                    ]);
-	      case 4 : 
+	      case 4 :
 	          return app(o(a0, a1, a2, a3), /* array */[
 	                      a4,
 	                      a5,
 	                      a6,
 	                      a7
 	                    ]);
-	      case 5 : 
+	      case 5 :
 	          return app(o(a0, a1, a2, a3, a4), /* array */[
 	                      a5,
 	                      a6,
 	                      a7
 	                    ]);
-	      case 6 : 
+	      case 6 :
 	          return app(o(a0, a1, a2, a3, a4, a5), /* array */[
 	                      a6,
 	                      a7
 	                    ]);
-	      case 7 : 
+	      case 7 :
 	          return app(o(a0, a1, a2, a3, a4, a5, a6), /* array */[a7]);
-	      
+
 	    }
 	  }
 	  if (exit === 1) {
@@ -3353,7 +3353,7 @@
 	                a7
 	              ]);
 	  }
-	  
+
 	}
 
 	function _8(o, a0, a1, a2, a3, a4, a5, a6, a7) {
@@ -3432,7 +3432,7 @@
 	      _l = l[1];
 	      _acc = l[0].length + acc | 0;
 	      continue ;
-	      
+
 	    } else {
 	      return acc;
 	    }
@@ -3456,7 +3456,7 @@
 	      _l = l[1];
 	      _i = k;
 	      continue ;
-	      
+
 	    } else {
 	      return /* () */0;
 	    }
@@ -3640,11 +3640,11 @@
 	          if (tag_a === 250) {
 	            _a = a[0];
 	            continue ;
-	            
+
 	          } else if (tag_b === 250) {
 	            _b = b[0];
 	            continue ;
-	            
+
 	          } else if (tag_a === 248) {
 	            return caml_int_compare(a[1], b[1]);
 	          } else if (tag_a === 251) {
@@ -3677,7 +3677,7 @@
 	                  } else {
 	                    _i = i + 1 | 0;
 	                    continue ;
-	                    
+
 	                  }
 	                }
 	              };
@@ -3697,7 +3697,7 @@
 	                  } else {
 	                    _i$1 = i$1 + 1 | 0;
 	                    continue ;
-	                    
+
 	                  }
 	                }
 	              };
@@ -3717,7 +3717,7 @@
 	                  } else {
 	                    _i$2 = i$2 + 1 | 0;
 	                    continue ;
-	                    
+
 	                  }
 	                }
 	              };
@@ -3754,11 +3754,11 @@
 	          if (tag_a === 250) {
 	            _a = a[0];
 	            continue ;
-	            
+
 	          } else if (tag_b === 250) {
 	            _b = b[0];
 	            continue ;
-	            
+
 	          } else if (tag_a === 248) {
 	            return +(a[1] === b[1]);
 	          } else if (tag_a === 251) {
@@ -3783,7 +3783,7 @@
 	                } else if (caml_equal(a$1[i], b$1[i])) {
 	                  _i = i + 1 | 0;
 	                  continue ;
-	                  
+
 	                } else {
 	                  return /* false */0;
 	                }
@@ -3943,9 +3943,9 @@
 
 	function bool_of_string(param) {
 	  switch (param) {
-	    case "false" : 
+	    case "false" :
 	        return /* false */0;
-	    case "true" : 
+	    case "true" :
 	        return /* true */1;
 	    default:
 	      throw [
@@ -3974,14 +3974,14 @@
 	        } else {
 	          _i = i + 1 | 0;
 	          continue ;
-	          
+
 	        }
 	      } else if (match !== 45) {
 	        return s;
 	      } else {
 	        _i = i + 1 | 0;
 	        continue ;
-	        
+
 	      }
 	    }
 	  };
@@ -4053,11 +4053,11 @@
 	        Caml_io.caml_ml_flush(param[0]);
 	      }
 	      catch (exn){
-	        
+
 	      }
 	      _param = param[1];
 	      continue ;
-	      
+
 	    } else {
 	      return /* () */0;
 	    }
@@ -4108,7 +4108,7 @@
 	    Caml_io.caml_ml_flush(oc);
 	  }
 	  catch (exn){
-	    
+
 	  }
 	  try {
 	    return Caml_missing_polyfill.not_implemented("caml_ml_close_channel not implemented by bucklescript yet\n");
@@ -4165,7 +4165,7 @@
 	        _len = len - r | 0;
 	        _ofs = ofs + r | 0;
 	        continue ;
-	        
+
 	      } else {
 	        throw Caml_builtin_exceptions.end_of_file;
 	      }
@@ -4202,7 +4202,7 @@
 	        _param = param[1];
 	        _pos = pos - len | 0;
 	        continue ;
-	        
+
 	      } else {
 	        return buf;
 	      }
@@ -4236,7 +4236,7 @@
 	            accu
 	          ];
 	          continue ;
-	          
+
 	        }
 	      } else if (accu) {
 	        return build_result(Caml_string.caml_create_string(len), len, accu);
@@ -5029,15 +5029,15 @@
 
 	function int_of_string_base(param) {
 	  switch (param) {
-	    case 0 : 
+	    case 0 :
 	        return 8;
-	    case 1 : 
+	    case 1 :
 	        return 16;
-	    case 2 : 
+	    case 2 :
 	        return 10;
-	    case 3 : 
+	    case 3 :
 	        return 2;
-	    
+
 	  }
 	}
 
@@ -5059,7 +5059,7 @@
 	            base = /* Hex */1;
 	            i = i + 2 | 0;
 	          }
-	          
+
 	        } else {
 	          base = /* Oct */0;
 	          i = i + 2 | 0;
@@ -5074,7 +5074,7 @@
 	          base = /* Hex */1;
 	          i = i + 2 | 0;
 	        }
-	        
+
 	      } else {
 	        base = /* Oct */0;
 	        i = i + 2 | 0;
@@ -5116,7 +5116,7 @@
 	        if (a === /* "_" */95) {
 	          _k = k + 1 | 0;
 	          continue ;
-	          
+
 	        } else {
 	          var v = parse_digit(a);
 	          if (v < 0 || v >= base) {
@@ -5135,7 +5135,7 @@
 	              _k = k + 1 | 0;
 	              _acc = acc$1;
 	              continue ;
-	              
+
 	            }
 	          }
 	        }
@@ -5161,31 +5161,31 @@
 	  var sign = Caml_int64.of_int32(match[1]);
 	  var threshold;
 	  switch (hbase) {
-	    case 0 : 
+	    case 0 :
 	        threshold = /* int64 */[
 	          /* hi */536870911,
 	          /* lo */4294967295
 	        ];
 	        break;
-	    case 1 : 
+	    case 1 :
 	        threshold = /* int64 */[
 	          /* hi */268435455,
 	          /* lo */4294967295
 	        ];
 	        break;
-	    case 2 : 
+	    case 2 :
 	        threshold = /* int64 */[
 	          /* hi */429496729,
 	          /* lo */2576980377
 	        ];
 	        break;
-	    case 3 : 
+	    case 3 :
 	        threshold = /* int64 */[
 	          /* hi */2147483647,
 	          /* lo */4294967295
 	        ];
 	        break;
-	    
+
 	  }
 	  var len = s.length;
 	  var c = i < len ? s.charCodeAt(i) : /* "\000" */0;
@@ -5210,7 +5210,7 @@
 	        if (a === /* "_" */95) {
 	          _k = k + 1 | 0;
 	          continue ;
-	          
+
 	        } else {
 	          var v = Caml_int64.of_int32(parse_digit(a));
 	          if (Caml_int64.lt(v, /* int64 */[
@@ -5226,7 +5226,7 @@
 	            _k = k + 1 | 0;
 	            _acc = acc$1;
 	            continue ;
-	            
+
 	          }
 	        }
 	      }
@@ -5251,13 +5251,13 @@
 
 	function int_of_base(param) {
 	  switch (param) {
-	    case 0 : 
+	    case 0 :
 	        return 8;
-	    case 1 : 
+	    case 1 :
 	        return 16;
-	    case 2 : 
+	    case 2 :
 	        return 10;
-	    
+
 	  }
 	}
 
@@ -5304,59 +5304,59 @@
 	            exit = 1;
 	          } else {
 	            switch (c - 88 | 0) {
-	              case 0 : 
+	              case 0 :
 	                  f[/* base */4] = /* Hex */1;
 	                  f[/* uppercase */7] = /* true */1;
 	                  _i = i + 1 | 0;
 	                  continue ;
-	                  case 13 : 
-	              case 14 : 
-	              case 15 : 
+	                  case 13 :
+	              case 14 :
+	              case 15 :
 	                  exit = 5;
 	                  break;
-	              case 12 : 
-	              case 17 : 
+	              case 12 :
+	              case 17 :
 	                  exit = 4;
 	                  break;
-	              case 23 : 
+	              case 23 :
 	                  f[/* base */4] = /* Oct */0;
 	                  _i = i + 1 | 0;
 	                  continue ;
-	                  case 29 : 
+	                  case 29 :
 	                  f[/* base */4] = /* Dec */2;
 	                  _i = i + 1 | 0;
 	                  continue ;
-	                  case 1 : 
-	              case 2 : 
-	              case 3 : 
-	              case 4 : 
-	              case 5 : 
-	              case 6 : 
-	              case 7 : 
-	              case 8 : 
-	              case 9 : 
-	              case 10 : 
-	              case 11 : 
-	              case 16 : 
-	              case 18 : 
-	              case 19 : 
-	              case 20 : 
-	              case 21 : 
-	              case 22 : 
-	              case 24 : 
-	              case 25 : 
-	              case 26 : 
-	              case 27 : 
-	              case 28 : 
-	              case 30 : 
-	              case 31 : 
+	                  case 1 :
+	              case 2 :
+	              case 3 :
+	              case 4 :
+	              case 5 :
+	              case 6 :
+	              case 7 :
+	              case 8 :
+	              case 9 :
+	              case 10 :
+	              case 11 :
+	              case 16 :
+	              case 18 :
+	              case 19 :
+	              case 20 :
+	              case 21 :
+	              case 22 :
+	              case 24 :
+	              case 25 :
+	              case 26 :
+	              case 27 :
+	              case 28 :
+	              case 30 :
+	              case 31 :
 	                  exit = 1;
 	                  break;
-	              case 32 : 
+	              case 32 :
 	                  f[/* base */4] = /* Hex */1;
 	                  _i = i + 1 | 0;
 	                  continue ;
-	                  
+
 	            }
 	          }
 	        } else if (c >= 72) {
@@ -5367,7 +5367,7 @@
 	          f[/* conv */10] = String.fromCharCode(lowercase(c));
 	          _i = i + 1 | 0;
 	          continue ;
-	          
+
 	        }
 	      } else {
 	        var switcher = c - 32 | 0;
@@ -5375,19 +5375,19 @@
 	          exit = 1;
 	        } else {
 	          switch (switcher) {
-	            case 3 : 
+	            case 3 :
 	                f[/* alternate */3] = /* true */1;
 	                _i = i + 1 | 0;
 	                continue ;
-	                case 0 : 
-	            case 11 : 
+	                case 0 :
+	            case 11 :
 	                exit = 2;
 	                break;
-	            case 13 : 
+	            case 13 :
 	                f[/* justify */0] = "-";
 	                _i = i + 1 | 0;
 	                continue ;
-	                case 14 : 
+	                case 14 :
 	                f[/* prec */9] = 0;
 	                var j = i + 1 | 0;
 	                while((function(j){
@@ -5401,47 +5401,47 @@
 	                };
 	                _i = j;
 	                continue ;
-	                case 1 : 
-	            case 2 : 
-	            case 4 : 
-	            case 5 : 
-	            case 6 : 
-	            case 7 : 
-	            case 8 : 
-	            case 9 : 
-	            case 10 : 
-	            case 12 : 
-	            case 15 : 
+	                case 1 :
+	            case 2 :
+	            case 4 :
+	            case 5 :
+	            case 6 :
+	            case 7 :
+	            case 8 :
+	            case 9 :
+	            case 10 :
+	            case 12 :
+	            case 15 :
 	                exit = 1;
 	                break;
-	            case 16 : 
+	            case 16 :
 	                f[/* filter */2] = "0";
 	                _i = i + 1 | 0;
 	                continue ;
-	                case 17 : 
-	            case 18 : 
-	            case 19 : 
-	            case 20 : 
-	            case 21 : 
-	            case 22 : 
-	            case 23 : 
-	            case 24 : 
-	            case 25 : 
+	                case 17 :
+	            case 18 :
+	            case 19 :
+	            case 20 :
+	            case 21 :
+	            case 22 :
+	            case 23 :
+	            case 24 :
+	            case 25 :
 	                exit = 3;
 	                break;
-	            
+
 	          }
 	        }
 	      }
 	      switch (exit) {
-	        case 1 : 
+	        case 1 :
 	            _i = i + 1 | 0;
 	            continue ;
-	            case 2 : 
+	            case 2 :
 	            f[/* signstyle */1] = String.fromCharCode(c);
 	            _i = i + 1 | 0;
 	            continue ;
-	            case 3 : 
+	            case 3 :
 	            f[/* width */6] = 0;
 	            var j$1 = i;
 	            while((function(j$1){
@@ -5455,17 +5455,17 @@
 	            };
 	            _i = j$1;
 	            continue ;
-	            case 4 : 
+	            case 4 :
 	            f[/* signedconv */5] = /* true */1;
 	            f[/* base */4] = /* Dec */2;
 	            _i = i + 1 | 0;
 	            continue ;
-	            case 5 : 
+	            case 5 :
 	            f[/* signedconv */5] = /* true */1;
 	            f[/* conv */10] = String.fromCharCode(c);
 	            _i = i + 1 | 0;
 	            continue ;
-	            
+
 	      }
 	    }
 	  };
@@ -5490,7 +5490,7 @@
 	      if (base === /* Hex */1) {
 	        len = len + 2 | 0;
 	      }
-	      
+
 	    } else {
 	      len = len + 1 | 0;
 	    }
@@ -5507,7 +5507,7 @@
 	    } else if (signstyle !== "-") {
 	      buffer = buffer + signstyle;
 	    }
-	    
+
 	  }
 	  if (alternate && base === /* Oct */0) {
 	    buffer = buffer + "0";
@@ -5546,7 +5546,7 @@
 	      if (n > 0) {
 	        s = Caml_utils.repeat(n, "0") + s;
 	      }
-	      
+
 	    }
 	    return finish_formatting(f$1, s);
 	  }
@@ -5561,7 +5561,7 @@
 	  var s = "";
 	  var match = f[/* base */4];
 	  switch (match) {
-	    case 0 : 
+	    case 0 :
 	        var wbase = /* int64 */[
 	          /* hi */0,
 	          /* lo */8
@@ -5604,10 +5604,10 @@
 	          };
 	        }
 	        break;
-	    case 1 : 
+	    case 1 :
 	        s = Caml_int64.to_hex(x$1) + s;
 	        break;
-	    case 2 : 
+	    case 2 :
 	        var wbase$1 = /* int64 */[
 	          /* hi */0,
 	          /* lo */10
@@ -5654,7 +5654,7 @@
 	          };
 	        }
 	        break;
-	    
+
 	  }
 	  if (f[/* prec */9] >= 0) {
 	    f[/* filter */2] = " ";
@@ -5662,7 +5662,7 @@
 	    if (n > 0) {
 	      s = Caml_utils.repeat(n, "0") + s;
 	    }
-	    
+
 	  }
 	  return finish_formatting(f, s);
 	}
@@ -5678,17 +5678,17 @@
 	  } else if (isFinite(x$1)) {
 	    var match = f[/* conv */10];
 	    switch (match) {
-	      case "e" : 
+	      case "e" :
 	          s = x$1.toExponential(prec);
 	          var i = s.length;
 	          if (s[i - 3 | 0] === "e") {
 	            s = s.slice(0, i - 1 | 0) + ("0" + s.slice(i - 1 | 0));
 	          }
 	          break;
-	      case "f" : 
+	      case "f" :
 	          s = x$1.toFixed(prec);
 	          break;
-	      case "g" : 
+	      case "g" :
 	          var prec$1 = prec !== 0 ? prec : 1;
 	          s = x$1.toExponential(prec$1 - 1 | 0);
 	          var j = s.indexOf("e");
@@ -5706,7 +5706,7 @@
 	            if (s[i$2 - 3 | 0] === "e") {
 	              s = s.slice(0, i$2 - 1 | 0) + ("0" + s.slice(i$2 - 1 | 0));
 	            }
-	            
+
 	          } else {
 	            var p = prec$1;
 	            if (exp < 0) {
@@ -5730,11 +5730,11 @@
 	              }
 	              s = s.slice(0, k + 1 | 0);
 	            }
-	            
+
 	          }
 	          break;
 	      default:
-	        
+
 	    }
 	  } else {
 	    s = "inf";
@@ -5828,7 +5828,7 @@
 	}
 
 	var imul = ( Math.imul || function (x,y) {
-	  y |= 0; return ((((x >> 16) * y) << 16) + (x & 0xffff) * y)|0; 
+	  y |= 0; return ((((x >> 16) * y) << 16) + (x & 0xffff) * y)|0;
 	}
 	);
 
@@ -6059,7 +6059,7 @@
 	            _other = neg(other);
 	            _this = neg($$this);
 	            continue ;
-	            
+
 	          } else {
 	            return neg(mul(neg($$this), other));
 	          }
@@ -6097,7 +6097,7 @@
 	                ];
 	        }
 	      }
-	      
+
 	    }
 	    if (exit === 1) {
 	      if ((lo & 1) === 0) {
@@ -6106,7 +6106,7 @@
 	        return min_int;
 	      }
 	    }
-	    
+
 	  };
 	}
 
@@ -6251,7 +6251,7 @@
 	          var rem = add(self, neg(y));
 	          return add(approx, div(rem, other));
 	        }
-	        
+
 	      }
 	    }
 	    if (exit === 1) {
@@ -6270,7 +6270,7 @@
 	            _other = neg(other);
 	            _self = neg(self);
 	            continue ;
-	            
+
 	          } else {
 	            return neg(div(neg(self), other));
 	          }
@@ -6299,9 +6299,9 @@
 	          return res;
 	        }
 	      }
-	      
+
 	    }
-	    
+
 	  };
 	}
 
@@ -6370,7 +6370,7 @@
 	      return aux(x[/* hi */0]) + "00000000";
 	    }
 	  }
-	  
+
 	}
 
 	function discard_sign(x) {
@@ -6564,45 +6564,45 @@
 	    return /* End_of_fmtty */0;
 	  } else {
 	    switch (param.tag | 0) {
-	      case 0 : 
+	      case 0 :
 	          return /* Char_ty */Block.__(0, [erase_rel(param[0])]);
-	      case 1 : 
+	      case 1 :
 	          return /* String_ty */Block.__(1, [erase_rel(param[0])]);
-	      case 2 : 
+	      case 2 :
 	          return /* Int_ty */Block.__(2, [erase_rel(param[0])]);
-	      case 3 : 
+	      case 3 :
 	          return /* Int32_ty */Block.__(3, [erase_rel(param[0])]);
-	      case 4 : 
+	      case 4 :
 	          return /* Nativeint_ty */Block.__(4, [erase_rel(param[0])]);
-	      case 5 : 
+	      case 5 :
 	          return /* Int64_ty */Block.__(5, [erase_rel(param[0])]);
-	      case 6 : 
+	      case 6 :
 	          return /* Float_ty */Block.__(6, [erase_rel(param[0])]);
-	      case 7 : 
+	      case 7 :
 	          return /* Bool_ty */Block.__(7, [erase_rel(param[0])]);
-	      case 8 : 
+	      case 8 :
 	          return /* Format_arg_ty */Block.__(8, [
 	                    param[0],
 	                    erase_rel(param[1])
 	                  ]);
-	      case 9 : 
+	      case 9 :
 	          var ty1 = param[0];
 	          return /* Format_subst_ty */Block.__(9, [
 	                    ty1,
 	                    ty1,
 	                    erase_rel(param[2])
 	                  ]);
-	      case 10 : 
+	      case 10 :
 	          return /* Alpha_ty */Block.__(10, [erase_rel(param[0])]);
-	      case 11 : 
+	      case 11 :
 	          return /* Theta_ty */Block.__(11, [erase_rel(param[0])]);
-	      case 12 : 
+	      case 12 :
 	          return /* Any_ty */Block.__(12, [erase_rel(param[0])]);
-	      case 13 : 
+	      case 13 :
 	          return /* Reader_ty */Block.__(13, [erase_rel(param[0])]);
-	      case 14 : 
+	      case 14 :
 	          return /* Ignored_reader_ty */Block.__(14, [erase_rel(param[0])]);
-	      
+
 	    }
 	  }
 	}
@@ -6612,44 +6612,44 @@
 	    return fmtty2;
 	  } else {
 	    switch (fmtty1.tag | 0) {
-	      case 0 : 
+	      case 0 :
 	          return /* Char_ty */Block.__(0, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 1 : 
+	      case 1 :
 	          return /* String_ty */Block.__(1, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 2 : 
+	      case 2 :
 	          return /* Int_ty */Block.__(2, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 3 : 
+	      case 3 :
 	          return /* Int32_ty */Block.__(3, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 4 : 
+	      case 4 :
 	          return /* Nativeint_ty */Block.__(4, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 5 : 
+	      case 5 :
 	          return /* Int64_ty */Block.__(5, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 6 : 
+	      case 6 :
 	          return /* Float_ty */Block.__(6, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 7 : 
+	      case 7 :
 	          return /* Bool_ty */Block.__(7, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 8 : 
+	      case 8 :
 	          return /* Format_arg_ty */Block.__(8, [
 	                    fmtty1[0],
 	                    concat_fmtty(fmtty1[1], fmtty2)
 	                  ]);
-	      case 9 : 
+	      case 9 :
 	          return /* Format_subst_ty */Block.__(9, [
 	                    fmtty1[0],
 	                    fmtty1[1],
 	                    concat_fmtty(fmtty1[2], fmtty2)
 	                  ]);
-	      case 10 : 
+	      case 10 :
 	          return /* Alpha_ty */Block.__(10, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 11 : 
+	      case 11 :
 	          return /* Theta_ty */Block.__(11, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 12 : 
+	      case 12 :
 	          return /* Any_ty */Block.__(12, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 13 : 
+	      case 13 :
 	          return /* Reader_ty */Block.__(13, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      case 14 : 
+	      case 14 :
 	          return /* Ignored_reader_ty */Block.__(14, [concat_fmtty(fmtty1[0], fmtty2)]);
-	      
+
 	    }
 	  }
 	}
@@ -6659,122 +6659,122 @@
 	    return fmt2;
 	  } else {
 	    switch (fmt1.tag | 0) {
-	      case 0 : 
+	      case 0 :
 	          return /* Char */Block.__(0, [concat_fmt(fmt1[0], fmt2)]);
-	      case 1 : 
+	      case 1 :
 	          return /* Caml_char */Block.__(1, [concat_fmt(fmt1[0], fmt2)]);
-	      case 2 : 
+	      case 2 :
 	          return /* String */Block.__(2, [
 	                    fmt1[0],
 	                    concat_fmt(fmt1[1], fmt2)
 	                  ]);
-	      case 3 : 
+	      case 3 :
 	          return /* Caml_string */Block.__(3, [
 	                    fmt1[0],
 	                    concat_fmt(fmt1[1], fmt2)
 	                  ]);
-	      case 4 : 
+	      case 4 :
 	          return /* Int */Block.__(4, [
 	                    fmt1[0],
 	                    fmt1[1],
 	                    fmt1[2],
 	                    concat_fmt(fmt1[3], fmt2)
 	                  ]);
-	      case 5 : 
+	      case 5 :
 	          return /* Int32 */Block.__(5, [
 	                    fmt1[0],
 	                    fmt1[1],
 	                    fmt1[2],
 	                    concat_fmt(fmt1[3], fmt2)
 	                  ]);
-	      case 6 : 
+	      case 6 :
 	          return /* Nativeint */Block.__(6, [
 	                    fmt1[0],
 	                    fmt1[1],
 	                    fmt1[2],
 	                    concat_fmt(fmt1[3], fmt2)
 	                  ]);
-	      case 7 : 
+	      case 7 :
 	          return /* Int64 */Block.__(7, [
 	                    fmt1[0],
 	                    fmt1[1],
 	                    fmt1[2],
 	                    concat_fmt(fmt1[3], fmt2)
 	                  ]);
-	      case 8 : 
+	      case 8 :
 	          return /* Float */Block.__(8, [
 	                    fmt1[0],
 	                    fmt1[1],
 	                    fmt1[2],
 	                    concat_fmt(fmt1[3], fmt2)
 	                  ]);
-	      case 9 : 
+	      case 9 :
 	          return /* Bool */Block.__(9, [concat_fmt(fmt1[0], fmt2)]);
-	      case 10 : 
+	      case 10 :
 	          return /* Flush */Block.__(10, [concat_fmt(fmt1[0], fmt2)]);
-	      case 11 : 
+	      case 11 :
 	          return /* String_literal */Block.__(11, [
 	                    fmt1[0],
 	                    concat_fmt(fmt1[1], fmt2)
 	                  ]);
-	      case 12 : 
+	      case 12 :
 	          return /* Char_literal */Block.__(12, [
 	                    fmt1[0],
 	                    concat_fmt(fmt1[1], fmt2)
 	                  ]);
-	      case 13 : 
+	      case 13 :
 	          return /* Format_arg */Block.__(13, [
 	                    fmt1[0],
 	                    fmt1[1],
 	                    concat_fmt(fmt1[2], fmt2)
 	                  ]);
-	      case 14 : 
+	      case 14 :
 	          return /* Format_subst */Block.__(14, [
 	                    fmt1[0],
 	                    fmt1[1],
 	                    concat_fmt(fmt1[2], fmt2)
 	                  ]);
-	      case 15 : 
+	      case 15 :
 	          return /* Alpha */Block.__(15, [concat_fmt(fmt1[0], fmt2)]);
-	      case 16 : 
+	      case 16 :
 	          return /* Theta */Block.__(16, [concat_fmt(fmt1[0], fmt2)]);
-	      case 17 : 
+	      case 17 :
 	          return /* Formatting_lit */Block.__(17, [
 	                    fmt1[0],
 	                    concat_fmt(fmt1[1], fmt2)
 	                  ]);
-	      case 18 : 
+	      case 18 :
 	          return /* Formatting_gen */Block.__(18, [
 	                    fmt1[0],
 	                    concat_fmt(fmt1[1], fmt2)
 	                  ]);
-	      case 19 : 
+	      case 19 :
 	          return /* Reader */Block.__(19, [concat_fmt(fmt1[0], fmt2)]);
-	      case 20 : 
+	      case 20 :
 	          return /* Scan_char_set */Block.__(20, [
 	                    fmt1[0],
 	                    fmt1[1],
 	                    concat_fmt(fmt1[2], fmt2)
 	                  ]);
-	      case 21 : 
+	      case 21 :
 	          return /* Scan_get_counter */Block.__(21, [
 	                    fmt1[0],
 	                    concat_fmt(fmt1[1], fmt2)
 	                  ]);
-	      case 22 : 
+	      case 22 :
 	          return /* Scan_next_char */Block.__(22, [concat_fmt(fmt1[0], fmt2)]);
-	      case 23 : 
+	      case 23 :
 	          return /* Ignored_param */Block.__(23, [
 	                    fmt1[0],
 	                    concat_fmt(fmt1[1], fmt2)
 	                  ]);
-	      case 24 : 
+	      case 24 :
 	          return /* Custom */Block.__(24, [
 	                    fmt1[0],
 	                    fmt1[1],
 	                    concat_fmt(fmt1[2], fmt2)
 	                  ]);
-	      
+
 	    }
 	  }
 	}
@@ -6937,7 +6937,7 @@
 	      ];
 	      _i = i - 1 | 0;
 	      continue ;
-	      
+
 	    }
 	  };
 	}
@@ -6950,7 +6950,7 @@
 	      _param = param[1];
 	      _accu = accu + 1 | 0;
 	      continue ;
-	      
+
 	    } else {
 	      return accu;
 	    }
@@ -6970,7 +6970,7 @@
 	        _param = param[1];
 	        _i = i + 1 | 0;
 	        continue ;
-	        
+
 	      } else {
 	        return a;
 	      }
@@ -7033,7 +7033,7 @@
 	          Caml_array.caml_array_set(a, i$1, Caml_array.caml_array_get(a, j));
 	          _i = j;
 	          continue ;
-	          
+
 	        } else {
 	          return Caml_array.caml_array_set(a, i$1, e$1);
 	        }
@@ -7058,7 +7058,7 @@
 	        Caml_array.caml_array_set(a, i$1, Caml_array.caml_array_get(a, j));
 	        _i = j;
 	        continue ;
-	        
+
 	      };
 	    }
 	    catch (raw_exn){
@@ -7089,7 +7089,7 @@
 	        if (father > 0) {
 	          _i = father;
 	          continue ;
-	          
+
 	        } else {
 	          return Caml_array.caml_array_set(a, 0, e);
 	        }
@@ -7139,7 +7139,7 @@
 	          _s1 = Caml_array.caml_array_get(a, i1$1);
 	          _i1 = i1$1;
 	          continue ;
-	          
+
 	        } else {
 	          return blit(src2, i2, dst, d + 1 | 0, src2r - i2 | 0);
 	        }
@@ -7151,7 +7151,7 @@
 	          _s2 = Caml_array.caml_array_get(src2, i2$1);
 	          _i2 = i2$1;
 	          continue ;
-	          
+
 	        } else {
 	          return blit(a, i1, dst, d + 1 | 0, src1r - i1 | 0);
 	        }
@@ -7678,7 +7678,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 	'use strict';
 
@@ -7885,7 +7885,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	function makeEmptyFunction(arg) {
@@ -7924,7 +7924,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -8292,7 +8292,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -8749,7 +8749,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -8780,7 +8780,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -8980,7 +8980,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -9023,7 +9023,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -10987,14 +10987,14 @@
 	            } else {
 	              _i = i + 1 | 0;
 	              continue ;
-	              
+
 	            }
 	          } else if (switcher > 57 || switcher < 1) {
 	            return /* true */1;
 	          } else {
 	            _i = i + 1 | 0;
 	            continue ;
-	            
+
 	          }
 	        } else {
 	          return /* true */1;
@@ -11327,43 +11327,43 @@
 	        exit = 1;
 	      } else {
 	        switch (c) {
-	          case 8 : 
+	          case 8 :
 	              s$prime[n] = /* "\\" */92;
 	              n = n + 1 | 0;
 	              s$prime[n] = /* "b" */98;
 	              break;
-	          case 9 : 
+	          case 9 :
 	              s$prime[n] = /* "\\" */92;
 	              n = n + 1 | 0;
 	              s$prime[n] = /* "t" */116;
 	              break;
-	          case 10 : 
+	          case 10 :
 	              s$prime[n] = /* "\\" */92;
 	              n = n + 1 | 0;
 	              s$prime[n] = /* "n" */110;
 	              break;
-	          case 0 : 
-	          case 1 : 
-	          case 2 : 
-	          case 3 : 
-	          case 4 : 
-	          case 5 : 
-	          case 6 : 
-	          case 7 : 
-	          case 11 : 
-	          case 12 : 
+	          case 0 :
+	          case 1 :
+	          case 2 :
+	          case 3 :
+	          case 4 :
+	          case 5 :
+	          case 6 :
+	          case 7 :
+	          case 11 :
+	          case 12 :
 	              exit = 1;
 	              break;
-	          case 13 : 
+	          case 13 :
 	              s$prime[n] = /* "\\" */92;
 	              n = n + 1 | 0;
 	              s$prime[n] = /* "r" */114;
 	              break;
-	          
+
 	        }
 	      }
 	      switch (exit) {
-	        case 1 : 
+	        case 1 :
 	            s$prime[n] = /* "\\" */92;
 	            n = n + 1 | 0;
 	            s$prime[n] = 48 + (c / 100 | 0) | 0;
@@ -11372,12 +11372,12 @@
 	            n = n + 1 | 0;
 	            s$prime[n] = 48 + c % 10 | 0;
 	            break;
-	        case 2 : 
+	        case 2 :
 	            s$prime[n] = /* "\\" */92;
 	            n = n + 1 | 0;
 	            s$prime[n] = c;
 	            break;
-	        
+
 	      }
 	      n = n + 1 | 0;
 	    }
@@ -11447,7 +11447,7 @@
 	    } else {
 	      _i = i + 1 | 0;
 	      continue ;
-	      
+
 	    }
 	  };
 	}
@@ -11478,7 +11478,7 @@
 	    } else {
 	      _i = i - 1 | 0;
 	      continue ;
-	      
+
 	    }
 	  };
 	}
@@ -11917,7 +11917,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 	'use strict';
 
@@ -13151,7 +13151,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -13634,7 +13634,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -13714,7 +13714,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -13774,7 +13774,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -13942,7 +13942,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -15008,7 +15008,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -15129,7 +15129,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -15321,7 +15321,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -15412,7 +15412,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -15507,7 +15507,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -15533,7 +15533,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -15987,7 +15987,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -19399,7 +19399,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 * @typechecks static-only
 	 */
 
@@ -20588,7 +20588,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -21543,7 +21543,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -22826,7 +22826,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -22869,7 +22869,7 @@
 	 * LICENSE file in the root directory of this source tree.
 	 *
 	 * @typechecks
-	 * 
+	 *
 	 */
 
 	/*eslint-disable no-self-compare */
@@ -23084,7 +23084,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -23107,7 +23107,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -23346,7 +23346,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -23368,7 +23368,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -23411,7 +23411,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -23792,7 +23792,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -23963,7 +23963,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -26057,7 +26057,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	var isTextNode = __webpack_require__(167);
@@ -26686,7 +26686,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -28112,7 +28112,7 @@
 	 * This source code is licensed under the MIT license found in the
 	 * LICENSE file in the root directory of this source tree.
 	 *
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -28382,21 +28382,21 @@
 	                    return curTotalState;
 	                  } else {
 	                    switch (reasonStateUpdate.tag | 0) {
-	                      case 0 : 
+	                      case 0 :
 	                          return {
 	                                  reasonState: reasonStateUpdate[0],
 	                                  reasonStateVersion: curTotalState.reasonStateVersion + 1 | 0,
 	                                  reasonStateVersionUsedToComputeSubelements: curTotalState.reasonStateVersionUsedToComputeSubelements,
 	                                  sideEffects: curTotalState.sideEffects
 	                                };
-	                      case 1 : 
+	                      case 1 :
 	                          return {
 	                                  reasonState: reasonStateUpdate[0],
 	                                  reasonStateVersion: curTotalState.reasonStateVersion + 1 | 0,
 	                                  reasonStateVersionUsedToComputeSubelements: curTotalState.reasonStateVersionUsedToComputeSubelements + 1 | 0,
 	                                  sideEffects: curTotalState.sideEffects
 	                                };
-	                      case 2 : 
+	                      case 2 :
 	                          return {
 	                                  reasonState: curTotalState.reasonState,
 	                                  reasonStateVersion: curTotalState.reasonStateVersion + 1 | 0,
@@ -28406,7 +28406,7 @@
 	                                    curTotalState.sideEffects
 	                                  ]
 	                                };
-	                      case 3 : 
+	                      case 3 :
 	                          return {
 	                                  reasonState: reasonStateUpdate[0],
 	                                  reasonStateVersion: curTotalState.reasonStateVersion + 1 | 0,
@@ -28416,7 +28416,7 @@
 	                                    curTotalState.sideEffects
 	                                  ]
 	                                };
-	                      case 4 : 
+	                      case 4 :
 	                          return {
 	                                  reasonState: reasonStateUpdate[0],
 	                                  reasonStateVersion: curTotalState.reasonStateVersion + 1 | 0,
@@ -28426,7 +28426,7 @@
 	                                    curTotalState.sideEffects
 	                                  ]
 	                                };
-	                      
+
 	                    }
 	                  }
 	                }),

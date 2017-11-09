@@ -8,6 +8,7 @@ header {
   padding: 15px;
   text-align: center;
   font-size: 36px;
+position: relative;
 }
 
 .content {
@@ -40,9 +41,6 @@ header {
   vertical-align: top;
   text-align: right;
 }
-h1, h2, h3, p {
-  text-align: center;
-}
 .bullets {
   width: 400px;
 }
@@ -60,4 +58,44 @@ h1, h2, h3, p {
 .center {
   max-width: 600px;
   margin: 0 auto;
+  text-align: center;
+}
+.center ul, .center pre {
+  text-align: left;
+}
+.github {
+  display: flex;
+  align-items: center;
+  color: black;
+  vertical-align: center;
+  text-transform: lowercase;
+  text-decoration: none;
+  font-size: 16px;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+.github svg {
+  margin-left: 10px;
+}
+
+.blog {
+  position: absolute;
+  font-size: 16px;
+  color: black;
+  left: 20px;  display: flex;
+  align-items: center;
+  top:30px;
+  text-decoration: none;
+}
+
+.logo {
+  color: black;
+  text-decoration: none;
+}
+.post {
+  line-height: 25px;
+  max-width: 600px;
+  padding: 40px;
 }

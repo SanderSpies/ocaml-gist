@@ -1,0 +1,62 @@
+<html>
+  <head>
+    <title>ocaml-gist - interactive OCaml gists for the web</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" />
+    <link href="./website.css" rel="stylesheet" />
+    <link href="output_stdlib/ocaml-gist.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header><a class="blog" href="blog.html">Blog</a> <a class="logo" href="/ocaml-gist">ocaml-gist</a> <a href="https://github.com/SanderSpies/ocaml-gist" class="github">Contribute <svg aria-hidden="true" height="32" version="1.1" viewBox="0 0 16 16" width="32"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg></a></header>
+  <div class="post">
+  <h1>Introducing ocaml-gist</h1>
+  <div><i>November 9th, 2017</i> - Sander Spies</div>
+    <p>Code on the internet is often a rather static affair, you read it and when you want to do more complex things, like writing code, you use an editor on your local machine. There are <a href="https://www.compilejava.net/">websites</a> <a href="https://dotnetfiddle.net/">where</a> <a href="https://play.rust-lang.org/">you</a> <a href="https://swift.sandbox.bluemix.net/#/repl">can</a> <a href="https://repl.it/">also</a> edit code online, but these often require a server because the supported programming language can't be compiled to the web. This means that these online editors are not very portable to other websites. </p>
+
+<p>OCaml has the advantage of being able to run code on the web without needing a server. ocaml-gist uses this advantage to create online gist experiences that run completely standalone. It allows library authors to give users a place where they can try libraries immediately. It allows for embedding in any form of web page, like for instance this blog post:</p>
+
+<div data-ocaml>
+(* change me *)
+let rec fib n =
+if n = 0 then 0
+else if n = 1 then 1
+else fib (n - 1) + fib (n - 2)
+
+let example = fib 20
+</div>
+
+<p>This is the first blog post in a series about ocaml-gist. In this blog post we dive into the technology used by ocaml-gist that allows OCaml to compile efficiently to JavaScript.</p>
+
+<p>OCaml is a great fit to compile towards JavaScript. Thanks to a sound type system it's possible to guarantee that a whole set of errors won't occur at runtime, this makes it possible to compile OCaml code very efficiently. Also, the OCaml compiler is very capable at optimizing code and removing unused code. Note that by default you won't need to do anything for this, it all works out of the box.</p>
+
+<p>ocaml-gist consists of two parts, a webworker and a frontend. The webworker evaluates OCaml in a separate thread and ensures that the frontend only needs to focus on the interface and remains responsive.</p>
+
+<h2>Webworker</h2>
+<p>
+The webworker is created through <a href="http://ocsigen.org/js_of_ocaml/">Js_of_ocaml</a>, which is a library that takes the bytecode produced by the ocamlc compiler and turns it into JavaScript. OCaml bytecode is a binary format that contains <a href="http://cadmium.x9c.fr/distrib/caml-instructions.pdf">operations</a> for the ocamlrun interpreter, which executes the bytecode. ocamlrun is a <a href="https://en.wikipedia.org/wiki/Stack_machine">stack machine which</a> means that the operations are executed in order. For example if an ADDINT operation is performed it will pull the the two latest values from the stack and push a new value on the stack. Js_of_ocaml is similar to ocamlrun as it also runs the code through a stack machine, but instead of executing the code it produces an intermediate format that is easier to translate to JavaScript. In this format in turn optimizations, <a href="http://ocsigen.org/js_of_ocaml/2.8.4/manual/options">when</a> enabled, are performed like: inlining functions, turning tail calls into trampolines, and deadcode elimination. As a result very efficient JavaScript can be created.
+</p>
+<p>
+An advantage of using bytecode as input is that Js_of_ocaml can easily support <a href="https://github.com/ocsigen/js_of_ocaml/commit/1bc3f248d35c8a7e857f3952d24eab6b77bf025a">newer versions</a> of OCaml as the bytecode format does not tend to change a lot. A disadvantage however is that the produced JavaScript is not really great for debugging, which means that integrating it in existing JavaScript environments can be troublesome.
+</p>
+<p>
+Another feature that ocaml-gist uses from Js_of_ocaml is the ability to create toplevels. Js_of_ocaml creates toplevels by compiling the OCaml toplevel's toploop to JavaScript through Js_of_ocaml. This makes it possible to evaluate OCaml code in the browser without needing a server. To make this rather trivial Js_of_ocaml has the jsoo_mktop command which ocaml-gist also uses.
+</p>
+
+<h2>Frontend</h2>
+<p>
+The frontend of ocaml-gist uses <a href="https://bucklescript.github.io/bucklescript/">BuckleScript</a> instead of Js_of_ocaml. BuckleScript is a fork of the OCaml compiler that has more focus on producing readable JavaScript compared to Js_of_ocaml. Instead of using bytecode, BuckleScript uses the intermediate lambda format of OCaml and turns it into JavaScript. This allows for a greater level of control on the output and helps with producing code that can be read by JavaScript developers. As the ocaml-gist frontend needs to be able to integrate within JavaScript environments this is a great fit. Forking the OCaml compiler comes with its own set of problems though. Most importantly being out-of-sync with the OCaml compiler.
+<p>
+<p>
+As we aim for readability by JavaScript developers, we've also chosen to use the <a href="https://reasonml.github.io">Reason</a> syntax instead of the default OCaml one. Reason is a syntax extension on top of OCaml that aims for readability by JavaScript developers. It's fully compatible with the default OCaml syntax and doesn't go beyond using the existing OCaml AST. It also provides great support for React.js, the frontend JavaScript library that is used by ocaml-gist, through the ReasonReact bindings and JSX support.
+</p>
+<p>
+As ocaml-gist itself shows, OCaml is a great fit to compile towards JavaScript. It provides features like a sound type system and deadcode elimination that allow it to compile efficiently to JavaScript, and Js_of_ocaml and BuckleScript help with compiling to JavaScript for different audiences.
+</p>
+<p>
+In the next blog post about ocaml-gist we'll be diving into the type based feedback support provided by Merlin-lite.
+</p>
+      </div>
+
+  </body>
+  <script src="ocaml_gist.js"></script>
+</html>

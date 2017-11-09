@@ -56,3 +56,8 @@ h1, h2, h3, p {
 .bullets li {
   margin-bottom:10px;
 }
+
+.center {
+  max-width: 600px;
+  margin: 0 auto;
+}

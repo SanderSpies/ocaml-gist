@@ -1,9 +1,6 @@
 matrix:
   include:
-    -language: c
     -language: nodejs
-      node_js:
-        - "8"
 sudo: false
 services:
   - docker
@@ -23,7 +20,6 @@ env:
   - PACKAGE="ocaml-gist" DISTRO="alpine-3.5" OCAML_VERSION="4.03.0"
   - PACKAGE="ocaml-webworker" DISTRO="alpine-3.5" OCAML_VERSION="4.02.3"
   - PACKAGE="ocaml-gist" DISTRO="alpine-3.5" OCAML_VERSION="4.02.3"
-
 # notifications:
 #   webhooks:
 #     urls:

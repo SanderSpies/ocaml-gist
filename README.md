@@ -21,8 +21,7 @@ in a while. Other versions not supported yet.
 
 Install ocaml-gist
 ```
-opam pin add -y ocaml-webworker https://github.com/SanderSpies/ocaml-gist.git
-opam pin add -y ocaml-gist https://github.com/SanderSpies/ocaml-gist.git
+opam install ocaml-gist
 ```
 
 Create an examples folder for your project.
